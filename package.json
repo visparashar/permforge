@@ -45,6 +45,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
+    "build:vscode": "npm --prefix vscode-extension run build",
+    "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

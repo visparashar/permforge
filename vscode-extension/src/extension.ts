@@ -1,0 +1,236 @@
+import * as vscode from 'vscode';
+import * as path from 'node:path';
+import * as fs from 'node:fs/promises';
+import { ProfilesTreeProvider, ProfileTreeItem } from './views/ProfilesTreeProvider.js';
+import { PermSetsTreeProvider } from './views/PermSetsTreeProvider.js';
+import { MigrationStudioPanel } from './panels/MigrationStudioPanel.js';
+import {
+  ProfileReader,
+  ProfileAnalyzer,
+  ProfileDecomposer,
+  HtmlReporter,
+  ProfileStripper,
+} from 'permforge';
+
+export function activate(context: vscode.ExtensionContext) {
+  console.log('PermForge extension is now active!');
+
+  const profilesProvider = new ProfilesTreeProvider();
+  const permSetsProvider = new PermSetsTreeProvider();
+
+  // Register Tree Views
+  vscode.window.registerTreeDataProvider('permforge-profiles', profilesProvider);
+  vscode.window.registerTreeDataProvider('permforge-permsets', permSetsProvider);
+
+  // Command: Open Migration Studio
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.openStudio', (target?: ProfileTreeItem | vscode.Uri | string) => {
+      let targetPath: string | undefined;
+      if (typeof target === 'string') {
+        targetPath = target;
+      } else if (target instanceof vscode.Uri) {
+        targetPath = target.fsPath;
+      } else if (target && target.profilePath) {
+        targetPath = target.profilePath;
+      }
+      MigrationStudioPanel.createOrShow(context.extensionUri, targetPath);
+    })
+  );
+
+  // Command: Refresh Profiles
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.refreshProfiles', () => {
+      profilesProvider.refresh();
+      permSetsProvider.refresh();
+    })
+  );
+
+  // Command: Analyze Profile
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.analyzeProfile', async (target?: ProfileTreeItem | vscode.Uri) => {
+      let filePath: string | undefined;
+      if (target instanceof vscode.Uri) {
+        filePath = target.fsPath;
+      } else if (target && target.profilePath) {
+        filePath = target.profilePath;
+      }
+
+      if (!filePath) {
+        vscode.window.showErrorMessage('No profile selected for analysis.');
+        return;
+      }
+
+      const reader = new ProfileReader();
+      const analyzer = new ProfileAnalyzer();
+      try {
+        const profile = await reader.loadProfile(filePath);
+        const analysis = analyzer.analyzeProfile(profile);
+
+        const riskSummary = analysis.highRiskPermissions.length > 0
+          ? `\n⚠️ High-Risk Grants: ${analysis.highRiskPermissions.join(', ')}`
+          : '';
+
+        vscode.window.showInformationMessage(
+          `PermForge Analysis for ${analysis.name}:\n` +
+          `• Complexity Debt: ${analysis.complexityScore}/100\n` +
+          `• SObjects: ${analysis.metrics.objectPermissionsCount} | FLS Fields: ${analysis.metrics.fieldPermissionsCount}\n` +
+          `• System Perms: ${analysis.metrics.userPermissionsCount}${riskSummary}`
+        );
+      } catch (err: any) {
+        vscode.window.showErrorMessage(`Analysis failed: ${err.message}`);
+      }
+    })
+  );
+
+  // Command: Decompose Profile
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.decomposeProfile', async (target?: ProfileTreeItem | vscode.Uri) => {
+      let filePath: string | undefined;
+      if (target instanceof vscode.Uri) {
+        filePath = target.fsPath;
+      } else if (target && target.profilePath) {
+        filePath = target.profilePath;
+      }
+
+      if (!filePath) {
+        vscode.window.showErrorMessage('No profile selected to decompose.');
+        return;
+      }
+
+      const rootPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      const config = vscode.workspace.getConfiguration('permforge');
+      const outputDir = config.get<string>('outputDirectory', path.join(rootPath, 'force-app/main/default'));
+
+      const reader = new ProfileReader();
+      const decomposer = new ProfileDecomposer();
+
+      try {
+        const profile = await reader.loadProfile(filePath);
+        const result = await decomposer.decompose(profile, { outputDir });
+
+        vscode.window.showInformationMessage(
+          `✔ Successfully decomposed ${profile.name} into ${result.permissionSets.length} domain Permission Sets and PSG ${result.permissionSetGroup?.apiName || `${profile.name}_PSG`}!`
+        );
+
+        profilesProvider.refresh();
+        permSetsProvider.refresh();
+      } catch (err: any) {
+        vscode.window.showErrorMessage(`Decomposition failed: ${err.message}`);
+      }
+    })
+  );
+
+  // Command: Verify Parity
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.verifyParity', async (target?: ProfileTreeItem | vscode.Uri) => {
+      let filePath: string | undefined;
+      if (target instanceof vscode.Uri) {
+        filePath = target.fsPath;
+      } else if (target && target.profilePath) {
+        filePath = target.profilePath;
+      }
+
+      // Open Migration Studio directly to the Parity tab with this profile selected
+      MigrationStudioPanel.createOrShow(context.extensionUri, filePath);
+    })
+  );
+
+  // Command: Strip Profile
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.stripProfile', async (target?: ProfileTreeItem | vscode.Uri) => {
+      let filePath: string | undefined;
+      if (target instanceof vscode.Uri) {
+        filePath = target.fsPath;
+      } else if (target && target.profilePath) {
+        filePath = target.profilePath;
+      }
+
+      if (!filePath) return;
+
+      const confirm = await vscode.window.showWarningMessage(
+        `Are you sure you want to sanitize and strip permissions from ${path.basename(filePath)}? Layouts, IP ranges, and login hours will be preserved.`,
+        { modal: true },
+        'Sanitize Profile'
+      );
+
+      if (confirm === 'Sanitize Profile') {
+        const stripper = new ProfileStripper();
+        const reader = new ProfileReader();
+        try {
+          const profile = await reader.loadProfile(filePath);
+          const result = await stripper.stripProfile(profile, {
+            outputDir: path.dirname(filePath),
+            inPlace: true,
+          });
+          vscode.window.showInformationMessage(
+            `✔ Profile sanitized! Stripped ${result.strippedStats.userPermissionsRemoved} perms, ${result.strippedStats.objectPermissionsRemoved} objects, and ${result.strippedStats.fieldPermissionsRemoved} fields.`
+          );
+          profilesProvider.refresh();
+        } catch (err: any) {
+          vscode.window.showErrorMessage(`Sanitization failed: ${err.message}`);
+        }
+      }
+    })
+  );
+
+  // Command: Cluster Profiles
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.clusterProfiles', async () => {
+      MigrationStudioPanel.createOrShow(context.extensionUri);
+    })
+  );
+
+  // Command: Generate Visual HTML Report
+  context.subscriptions.push(
+    vscode.commands.registerCommand('permforge.generateReport', async () => {
+      if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace open to generate report.');
+        return;
+      }
+
+      const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const config = vscode.workspace.getConfiguration('permforge');
+      const customDir = config.get<string>('profilesDirectory', 'force-app/main/default/profiles');
+      const searchTarget = path.isAbsolute(customDir) ? customDir : path.join(rootPath, customDir);
+
+      const reader = new ProfileReader();
+      const analyzer = new ProfileAnalyzer();
+      const reporter = new HtmlReporter();
+
+      try {
+        let profiles = await reader.loadProfiles(searchTarget);
+        if (profiles.length === 0) {
+          profiles = await reader.loadProfiles(rootPath);
+        }
+
+        if (profiles.length === 0) {
+          vscode.window.showWarningMessage('No profiles found in workspace to report on.');
+          return;
+        }
+
+        const analyses = profiles.map((p) => analyzer.analyzeProfile(p));
+        const reportPath = path.join(rootPath, 'permforge-audit-report.html');
+        await reporter.generateReport(
+          {
+            analyses,
+            generatedAt: new Date().toISOString(),
+          },
+          reportPath
+        );
+
+        const openDoc = await vscode.window.showInformationMessage(
+          `✔ PermForge HTML Audit Report created at permforge-audit-report.html`,
+          'Open in Browser'
+        );
+
+        if (openDoc === 'Open in Browser') {
+          vscode.env.openExternal(vscode.Uri.file(reportPath));
+        }
+      } catch (err: any) {
+        vscode.window.showErrorMessage(`Report generation failed: ${err.message}`);
+      }
+    })
+  );
+}
+
+export function deactivate() {}

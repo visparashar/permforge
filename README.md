@@ -13,6 +13,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-23%2F23%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
 [![MCP Native](https://img.shields.io/badge/MCP-Compatible-9cf.svg)](https://modelcontextprotocol.io/)
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](vscode-extension)
 
 > **The Complete, Open-Source Salesforce Profile to Permission Set & Permission Set Group Migration Platform.**
 >
@@ -66,6 +67,20 @@ npx permforge --help
 
 ```bash
 npm install permforge
+```
+
+### 🖥️ Visual Studio Code Extension
+
+Prefer an interactive GUI? Use the official **[PermForge VS Code Extension](vscode-extension)**:
+
+- **Sidebar Explorers**: Live profile debt badges (`🟢 Low`, `🟡 Med`, `🔴 High`), SObject/FLS counts, and risk flags.
+- **PermForge Migration Studio**: Interactive Webview for visual decomposition, clustering threshold tuning, and mathematical parity proofs.
+- **Context Menus**: Right-click any `.profile-meta.xml` or `.profile` file in VS Code to analyze, decompose, or sanitize immediately.
+
+```bash
+# Package and install locally
+npm run package:vscode
+code --install-extension vscode-extension/vscode-permforge-1.0.0.vsix
 ```
 
 ---

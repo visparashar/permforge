@@ -31,6 +31,7 @@ flowchart LR
 - [x] **Native Model Context Protocol (MCP) Server**: 9 tools exposed over JSON-RPC for Claude Desktop, Cursor, Antigravity, and Cline.
 - [x] **Salesforce NPSP Real-World Validation**: Verified 100% parity against Salesforce Foundation's Nonprofit Success Pack profiles.
 - [x] **Interactive Documentation Site**: Hosted on GitHub Pages with dark-mode terminal showcase and cheatsheet.
+- [x] **Visual Studio Code Extension & Migration Studio**: Full Activity Bar explorer, interactive webview studio, context menus, and .vsix packaging.
 
 ---
 
