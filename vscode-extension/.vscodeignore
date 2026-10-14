@@ -4,3 +4,7 @@ src/**
 tsconfig.json
 **/*.map
 .DS_Store
+node_modules/**
+dist/panels/**
+dist/views/**
+*.vsix

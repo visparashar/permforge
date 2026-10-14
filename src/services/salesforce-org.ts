@@ -33,6 +33,79 @@ export class SalesforceOrgService {
   }
 
   /**
+   * List all authorized Salesforce orgs known to the CLI or ~/.sfdx
+   */
+  public listAuthorizedOrgs(): { username: string; alias?: string; isDefault?: boolean }[] {
+    const orgs: { username: string; alias?: string; isDefault?: boolean }[] = [];
+    const seen = new Set<string>();
+
+    // 1. Try sf org list --json
+    try {
+      const raw = execSync('sf org list --json', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const data = JSON.parse(raw);
+      const allOrgs = [
+        ...(data?.result?.nonScratchOrgs || []),
+        ...(data?.result?.sandboxes || []),
+        ...(data?.result?.scratchOrgs || []),
+      ];
+      for (const org of allOrgs) {
+        if (org.username && !seen.has(org.username)) {
+          seen.add(org.username);
+          orgs.push({
+            username: org.username,
+            alias: org.alias || (org.name && org.name !== 'Developer Edition' ? org.name : undefined),
+            isDefault: !!org.isDefaultUsername,
+          });
+        }
+      }
+      if (orgs.length > 0) return orgs;
+    } catch {
+      // ignore
+    }
+
+    // 2. Fallback: inspect ~/.sfdx
+    try {
+      const homedir = os.homedir();
+      const sfdxDir = path.join(homedir, '.sfdx');
+      let aliasMap: Record<string, string> = {};
+      if (fs.existsSync(path.join(sfdxDir, 'alias.json'))) {
+        const aliasData = JSON.parse(fs.readFileSync(path.join(sfdxDir, 'alias.json'), 'utf-8'));
+        aliasMap = aliasData?.orgs || {};
+      }
+      let defaultUser: string | undefined;
+      if (fs.existsSync(path.join(sfdxDir, 'sfdx-config.json'))) {
+        const configData = JSON.parse(fs.readFileSync(path.join(sfdxDir, 'sfdx-config.json'), 'utf-8'));
+        defaultUser = configData['defaultusername'];
+      }
+      const userToAlias: Record<string, string> = {};
+      for (const [alias, user] of Object.entries(aliasMap)) {
+        userToAlias[user] = alias;
+      }
+
+      if (fs.existsSync(sfdxDir)) {
+        const files = fs.readdirSync(sfdxDir);
+        for (const file of files) {
+          if (file.endsWith('.json') && file !== 'alias.json' && file !== 'sfdx-config.json') {
+            const user = file.replace('.json', '');
+            if (!seen.has(user)) {
+              seen.add(user);
+              orgs.push({
+                username: user,
+                alias: userToAlias[user],
+                isDefault: user === defaultUser,
+              });
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    return orgs;
+  }
+
+  /**
    * Resolve authentication credentials for a target org from:
    * 1. Environment variables (SF_ACCESS_TOKEN, SF_INSTANCE_URL)
    * 2. Salesforce CLI (`sf org auth show-access-token` / `sf org display`)

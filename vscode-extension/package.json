@@ -66,6 +66,24 @@
         "icon": "$(layout-dashboard)"
       },
       {
+        "command": "permforge.openParityMatrix",
+        "title": "PermForge: View Parity Matrix & Access Heatmap",
+        "category": "PermForge",
+        "icon": "$(table)"
+      },
+      {
+        "command": "permforge.retrieveFromOrg",
+        "title": "PermForge: Retrieve Profiles from Salesforce Org",
+        "category": "PermForge",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "permforge.runPipeline",
+        "title": "PermForge: Run End-to-End Enterprise Migration Pipeline",
+        "category": "PermForge",
+        "icon": "$(rocket)"
+      },
+      {
         "command": "permforge.refreshProfiles",
         "title": "PermForge: Refresh Profiles",
         "category": "PermForge",
@@ -110,6 +128,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "permforge.retrieveFromOrg",
+          "when": "view == permforge-profiles",
+          "group": "navigation@0"
+        },
+        {
           "command": "permforge.openStudio",
           "when": "view == permforge-profiles",
           "group": "navigation@1"
@@ -123,6 +146,11 @@
           "command": "permforge.clusterProfiles",
           "when": "view == permforge-profiles",
           "group": "navigation@3"
+        },
+        {
+          "command": "permforge.runPipeline",
+          "when": "view == permforge-profiles",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
@@ -130,6 +158,11 @@
           "command": "permforge.openStudio",
           "when": "view == permforge-profiles && viewItem == profile",
           "group": "inline@1"
+        },
+        {
+          "command": "permforge.openParityMatrix",
+          "when": "view == permforge-profiles && viewItem == profile",
+          "group": "1_actions@0"
         },
         {
           "command": "permforge.decomposeProfile",
@@ -154,19 +187,24 @@
           "group": "permforge@1"
         },
         {
-          "command": "permforge.analyzeProfile",
+          "command": "permforge.openParityMatrix",
           "when": "resourceExtname == .profile-meta.xml || resourceExtname == .profile",
           "group": "permforge@2"
         },
         {
-          "command": "permforge.decomposeProfile",
+          "command": "permforge.analyzeProfile",
           "when": "resourceExtname == .profile-meta.xml || resourceExtname == .profile",
           "group": "permforge@3"
         },
         {
-          "command": "permforge.stripProfile",
+          "command": "permforge.decomposeProfile",
           "when": "resourceExtname == .profile-meta.xml || resourceExtname == .profile",
           "group": "permforge@4"
+        },
+        {
+          "command": "permforge.stripProfile",
+          "when": "resourceExtname == .profile-meta.xml || resourceExtname == .profile",
+          "group": "permforge@5"
         }
       ]
     },
@@ -187,7 +225,7 @@
           "type": "number",
           "default": 0.75,
           "minimum": 0.1,
-          "maximum": 1.0,
+          "maximum": 1,
           "description": "Default sharing threshold frequency for inclusion in the Standard Employee Baseline."
         }
       }
@@ -195,8 +233,9 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "watch": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "package": "npm run build && vsce package --no-dependencies --no-git-tag-version"
   },
   "dependencies": {
     "permforge": "file:.."
@@ -204,6 +243,8 @@
   "devDependencies": {
     "@types/node": "^22.13.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.3"
   }
 }

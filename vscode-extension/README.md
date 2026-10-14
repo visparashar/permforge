@@ -25,14 +25,17 @@ With Salesforce officially retiring permissions on legacy Profiles, PermForge pr
 
 ### 2. 🎛️ PermForge Migration Studio (Interactive Webview Panel)
 - **Overview Dashboard**: High-level metrics on discovered profiles, average tech debt, and total permissions.
+- **📊 Interactive Parity Matrix & Access Heatmap**: Color-coded side-by-side CRUDVM (Create, Read, Edit, Delete, View All, Modify All) and FLS matrix with instant search and filter controls.
+- **☁️ Live Salesforce Org Migration**: Connect directly to your authorized org via `sf`/`sfdx` auth cache, list remote profiles, retrieve metadata to workspace, or deploy decomposed Permission Sets & PSGs directly to the cloud!
+- **⚡ Enterprise Multi-Stage Pipeline**: 1-click execution coordinating Audit, Jaccard Clustering, Domain Decomposition, Parity Verification, UAP Generation, and HTML Audit Reporting with a live animated progress stepper.
 - **Visual Decomposer**: Select any profile to preview its split into domain Permission Sets and persona PSGs, and click **Execute Modular Decomposition** to write XML files directly to your repo.
-- **Parity Inspector & Proof Matrix**: Side-by-side comparison between source profiles and target PSGs proving bit-for-bit equivalence.
 - **Cross-Profile Clustering**: Adjust the Jaccard similarity threshold slider to preview and generate a shared `Standard_Employee_Baseline` across multiple profiles.
 - **Profile Sanitizer (Strip)**: Clean migratable permissions from profiles while keeping layout assignments, login IP ranges, and login hours 100% safe.
 
 ### 3. ⚡ File Explorer & Editor Context Menus
 - Right-click any `.profile-meta.xml` or `.profile` file in the VS Code File Explorer:
   - **PermForge: Open Migration Studio**
+  - **PermForge: View Parity Matrix & Access Heatmap**
   - **PermForge: Analyze Profile Complexity & Risks**
   - **PermForge: Decompose into Permission Sets & PSG**
   - **PermForge: Sanitize & Strip Permissions**
@@ -44,6 +47,9 @@ With Salesforce officially retiring permissions on legacy Profiles, PermForge pr
 | Command | Description |
 |---|---|
 | `PermForge: Open Migration Studio` | Opens the full visual webview studio. |
+| `PermForge: View Parity Matrix & Access Heatmap` | Opens side-by-side CRUDVM & FLS parity matrix. |
+| `PermForge: Retrieve Profiles from Salesforce Org` | Downloads profiles directly from live authorized org. |
+| `PermForge: Run End-to-End Enterprise Migration Pipeline` | Executes complete multi-stage automated pipeline. |
 | `PermForge: Refresh Profiles` | Re-scans workspace for profiles and permission sets. |
 | `PermForge: Analyze Profile Complexity & Risks` | Audits selected profile and outputs security metrics. |
 | `PermForge: Decompose into Permission Sets & PSG` | Slices profile into domain permission sets and PSG. |
