@@ -1,0 +1,75 @@
+{
+  "name": "permforge",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Intelligent Salesforce Profile to Permission Set & Permission Set Group migration and modularization toolkit.",
+  "author": "Vishal Parashar",
+  "license": "MIT",
+  "keywords": [
+    "salesforce",
+    "sfdx",
+    "sf-plugin",
+    "permission-set",
+    "permission-set-group",
+    "profile",
+    "security",
+    "migration",
+    "devops"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "permforge": "./bin/run.js"
+  },
+  "files": [
+    "/bin",
+    "/dist",
+    "/oclif.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist",
+    "dev": "tsx ./bin/run.ts",
+    "prepack": "npm run clean && npm run build && oclif manifest-generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "oclif": {
+    "bin": "permforge",
+    "dirname": "permforge",
+    "commands": "./dist/commands",
+    "topicSeparator": " ",
+    "topics": {
+      "analyze": {
+        "description": "Analyze profiles to identify permissions, tech debt, and overlaps"
+      },
+      "decompose": {
+        "description": "Decompose monolithic profiles into modular Permission Sets and Permission Set Groups"
+      },
+      "verify": {
+        "description": "Verify access parity between a source Profile and target Permission Sets"
+      },
+      "plan": {
+        "description": "Generate user assignment and migration rollout plans"
+      }
+    }
+  },
+  "dependencies": {
+    "@oclif/core": "^4.2.14",
+    "cli-table3": "^0.6.5",
+    "fast-xml-parser": "^4.5.3",
+    "glob": "^11.0.1",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@oclif/plugin-help": "^6.2.26",
+    "@types/node": "^22.13.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
