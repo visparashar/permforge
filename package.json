@@ -48,7 +48,8 @@
     "build:vscode": "npm --prefix vscode-extension run build",
     "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo:gif": "node scripts/generate-demo-gif.js"
   },
   "oclif": {
     "bin": "permforge",
@@ -113,7 +114,10 @@
   "devDependencies": {
     "@oclif/plugin-help": "^6.2.26",
     "@types/node": "^22.13.0",
+    "@types/pngjs": "^6.0.5",
     "oclif": "^6.0.8",
+    "omggif": "^1.0.10",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",

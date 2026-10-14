@@ -48,6 +48,10 @@ flowchart LR
     F --> G["7. PIPELINE<br/>pipeline --run"]
 ```
 
+### 🎥 Live Demo: Migrating Salesforce NPSP (Nonprofit Success Pack)
+
+![PermForge Salesforce NPSP Migration Pipeline](docs/assets/npsp-demo.gif)
+
 ---
 
 ## 📦 Installation
