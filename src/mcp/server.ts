@@ -20,6 +20,7 @@ import { MuteBuilder } from '../engine/mute-builder.js';
 import { GraphBuilder } from '../engine/graph-builder.js';
 import { PipelineRunner } from '../engine/pipeline-runner.js';
 import { XmlEngine } from '../parser/xml-engine.js';
+import { SalesforceOrgService } from '../services/salesforce-org.js';
 import { DecompositionStrategy } from '../types/decomposition.js';
 
 const TOOLS: Tool[] = [
@@ -237,9 +238,50 @@ const TOOLS: Tool[] = [
     },
   },
   {
+    name: 'permforge_list_org_profiles',
+    description:
+      'Query and list all profiles available in an authenticated live Salesforce org via Tooling/SOQL API.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        targetOrg: {
+          type: 'string',
+          description: 'Salesforce org username or alias (defaults to default SFDX/SF org)',
+        },
+        customOnly: {
+          type: 'boolean',
+          description: 'Filter only custom profiles (default: true)',
+        },
+      },
+    },
+  },
+  {
+    name: 'permforge_retrieve_profiles',
+    description:
+      'Retrieve full profile XML metadata directly from an authenticated live Salesforce org via Metadata API.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        targetOrg: {
+          type: 'string',
+          description: 'Salesforce org username or alias (defaults to default SFDX/SF org)',
+        },
+        profiles: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'List of profile names to retrieve (e.g. ["Custom_Admin", "Sales_User"])',
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Directory where retrieved .profile-meta.xml files should be saved',
+        },
+      },
+    },
+  },
+  {
     name: 'permforge_pipeline',
     description:
-      'Execute the complete multi-stage profile migration pipeline: audit, cross-profile clustering, modular decomposition, mathematical parity proof, sanitization, User Access Policy (UAP) generation, and migration runbook rollout planning.',
+      'Execute the complete multi-stage profile migration pipeline: audit, cross-profile clustering, modular decomposition, mathematical parity proof, sanitization, User Access Policy (UAP) generation, migration rollout planning, and optional target org deployment.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -251,6 +293,19 @@ const TOOLS: Tool[] = [
         outputDir: {
           type: 'string',
           description: 'Destination directory (defaults to force-app/main/default)',
+        },
+        targetOrg: {
+          type: 'string',
+          description: 'Connect directly to a live Salesforce org (alias or username)',
+        },
+        deploy: {
+          type: 'boolean',
+          description: 'Deploy generated Permission Sets & PSGs to the live org upon completion',
+        },
+        profiles: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Specific profiles to process when targeting a live org',
         },
         cluster: {
           type: 'boolean',
@@ -504,9 +559,48 @@ export function createMcpServer(): Server {
           };
         }
 
+        case 'permforge_list_org_profiles': {
+          const targetOrg = args.targetOrg as string | undefined;
+          const customOnly = args.customOnly !== false;
+          const orgService = new SalesforceOrgService();
+          const profiles = await orgService.listProfiles(targetOrg, { customOnly });
+          return {
+            content: [{ type: 'text', text: JSON.stringify(profiles, null, 2) }],
+          };
+        }
+
+        case 'permforge_retrieve_profiles': {
+          const targetOrg = args.targetOrg as string | undefined;
+          const profileNames = (args.profiles as string[]) || [];
+          const outputDir = (args.outputDir as string) || 'force-app/main/default/profiles';
+          const orgService = new SalesforceOrgService();
+          const profiles = await orgService.retrieveProfiles(profileNames, targetOrg, {
+            saveToDir: outputDir,
+          });
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    retrievedCount: profiles.length,
+                    outputDir,
+                    profiles: profiles.map((p) => p.name),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
         case 'permforge_pipeline': {
           const source = (args.source as string) || 'force-app/main/default/profiles';
           const outputDir = (args.outputDir as string) || 'force-app/main/default';
+          const targetOrg = args.targetOrg as string | undefined;
+          const deploy = Boolean(args.deploy);
+          const profiles = args.profiles as string[] | undefined;
           const cluster = Boolean(args.cluster);
           const strip = Boolean(args.strip);
           const strict = Boolean(args.strict);
@@ -515,6 +609,9 @@ export function createMcpServer(): Server {
           const result = await pipelineRunner.runPipeline({
             sourceDir: source,
             outputDir,
+            targetOrg,
+            deploy,
+            profiles,
             strict,
             dryRun,
             stages: {

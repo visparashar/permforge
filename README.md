@@ -11,7 +11,7 @@
 [![Documentation](https://img.shields.io/badge/Documentation-GitHub%20Pages-blue.svg)](https://visparashar.github.io/permforge/)
 [![Node.js CI](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-25%2F25%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
+[![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
 [![MCP Native](https://img.shields.io/badge/MCP-Compatible-9cf.svg)](https://modelcontextprotocol.io/)
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](vscode-extension)
 
@@ -40,12 +40,12 @@ Salesforce has officially announced the retirement of permissions on legacy Prof
 
 ```mermaid
 flowchart LR
-    A["1. AUDIT<br/>analyze / report"] --> B["2. MODULARIZE<br/>decompose / cluster"]
-    B --> C["3. VERIFY<br/>verify (100% Parity)"]
-    C --> D["4. SANITIZE<br/>strip / clean"]
-    D --> E["5. GOVERN<br/>lint / graph"]
-    E --> F["6. AUTOMATE<br/>uap / mute / plan"]
-    F --> G["7. PIPELINE<br/>pipeline --run"]
+    A["1. RETRIEVE<br/>retrieve --target-org"] --> B["2. AUDIT<br/>analyze / report"]
+    B --> C["3. MODULARIZE<br/>decompose / cluster"]
+    C --> D["4. VERIFY<br/>verify (100% Parity)"]
+    D --> E["5. SANITIZE<br/>strip / clean"]
+    E --> F["6. GOVERN<br/>lint / graph"]
+    F --> G["7. DEPLOY<br/>pipeline --deploy"]
 ```
 
 ### 🎥 Live Demo: Migrating Salesforce NPSP (Nonprofit Success Pack)
@@ -95,6 +95,7 @@ code --install-extension vscode-extension/vscode-permforge-1.0.0.vsix
 | Command                              | Description                                                                                                           |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | **`permforge pipeline`**             | **Full Migration Pipeline:** Executes audit, clustering, parity verification, UAP, and rollout planning in one command.|
+| **`permforge retrieve`**             | **Live Org Extraction:** Queries and pulls profile metadata directly from an authenticated live Salesforce org.        |
 | **`permforge analyze`**              | Scans profiles, inventories permissions, flags high-risk access, and scores complexity (0–100).                       |
 | **`permforge report`**               | Generates an interactive, standalone HTML audit report with security heatmaps and parity tables.                      |
 | **`permforge decompose`**            | Decomposes legacy profiles into domain-aligned Permission Sets and Persona-based PSGs.                                |
@@ -183,8 +184,11 @@ permforge pipeline --run
 # Run full pipeline with cross-profile clustering and UAP generation
 permforge pipeline --run --source force-app/main/default/profiles --cluster --uap --plan
 
-# Dry-run simulation mode (ideal for CI/CD gates — fails if parity < 100%)
-permforge pipeline --run --strict --dry-run
+# Run full pipeline directly against an authenticated Salesforce org (cloud migration)
+permforge pipeline --run --target-org my-sandbox --cluster --strict
+
+# Deploy generated Permission Sets & PSGs to live org after 100% parity verification
+permforge pipeline --run --target-org my-sandbox --deploy
 
 # Initialize pipeline configuration and scaffold GitHub Actions CI gate
 permforge pipeline --init
@@ -195,6 +199,9 @@ permforge pipeline --init
 | Flag | Description | Default |
 | --- | --- | --- |
 | `--run` | Execute the full multi-stage migration pipeline | `false` |
+| `-o, --target-org` | Connect directly to an authenticated Salesforce org (alias or username) | `undefined` |
+| `--deploy` | Deploy generated Permission Sets and PSGs to the live org upon completion | `false` |
+| `-p, --profiles` | Comma-separated list of profile names to process when targeting a live org | `all custom` |
 | `--init` | Scaffolds `permforge.pipeline.json` and `.github/workflows/salesforce-permforge-gate.yml` | `false` |
 | `-s, --source` | Directory or glob pattern containing source profiles | `force-app/main/default/profiles` |
 | `-d, --output-dir` | Target directory for generated Permission Sets and PSGs | `force-app/main/default` |
@@ -208,7 +215,25 @@ permforge pipeline --init
 
 ---
 
-### 1. `permforge analyze`
+### 1. `permforge retrieve` (Live Org Extraction)
+
+Directly extracts profiles from any authenticated Salesforce org using the Metadata API—without requiring manual Setup exports, change sets, or Ant scripts.
+
+```bash
+# List all profiles available in your default or sandbox org
+permforge retrieve --list
+permforge retrieve --target-org my-sandbox --list
+
+# Retrieve specific profiles to local directory
+permforge retrieve --target-org my-sandbox --profiles "Custom_Admin,Sales_User"
+
+# Retrieve all custom profiles in the org
+permforge retrieve --target-org my-sandbox --all-custom --output-dir force-app/main/default/profiles
+```
+
+---
+
+### 2. `permforge analyze`
 
 Scans your repository for profile metadata, inventories all permissions, flags high-risk access, and calculates a complexity score (0-100).
 
@@ -504,18 +529,20 @@ Add PermForge to your MCP configuration file:
 
 ### 🛠️ Exposed MCP Tools for AI Agents
 
-| MCP Tool Name         | Description                                                                                                                                           |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `permforge_pipeline` | Coordinates the full 8-stage migration pipeline (audit, cluster, decompose, verify, strip, uap, plan, report).       |
-| `permforge_analyze`   | Audits profiles, counts SObject/FLS permissions, computes complexity score (0-100), and flags high-risk capabilities (`ModifyAllData`, `AuthorApex`). |
-| `permforge_decompose` | Splits a monolithic profile into clean, domain-aligned Permission Sets and a Persona PSG with 100% parity check.                                      |
-| `permforge_cluster`   | Clusters multiple profiles across the org to extract `Standard_Employee_Baseline` + role-specific deltas.                                             |
-| `permforge_verify`    | Mathematically proves access parity between a source Profile and target Permission Sets / PSG.                                                        |
-| `permforge_strip`     | Removes deprecated permissions from `.profile-meta.xml` while preserving layout assignments and settings.                                             |
-| `permforge_lint`      | Scans profiles for deprecated permissions and reports compliance for CI/CD and PR reviews.                                                            |
-| `permforge_uap`       | Generates native Salesforce `UserAccessPolicy` metadata for automated user provisioning.                                                              |
-| `permforge_mute`      | Generates `MutingPermissionSet` metadata to restrict actions (e.g. Delete) on a PSG.                                                                  |
-| `permforge_graph`     | Emits interactive Mermaid diagrams or ASCII trees of the permission hierarchy.                                                                        |
+| MCP Tool Name                  | Description                                                                                                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `permforge_pipeline`          | Coordinates the full multi-stage migration pipeline (with optional target org extraction and deployment).                                             |
+| `permforge_list_org_profiles`  | Queries and lists all profiles available in an authenticated live Salesforce org via Tooling/SOQL API.                                                |
+| `permforge_retrieve_profiles`  | Retrieves full profile XML metadata directly from an authenticated live Salesforce org via Metadata API.                                            |
+| `permforge_analyze`            | Audits profiles, counts SObject/FLS permissions, computes complexity score (0-100), and flags high-risk capabilities (`ModifyAllData`, `AuthorApex`). |
+| `permforge_decompose`          | Splits a monolithic profile into clean, domain-aligned Permission Sets and a Persona PSG with 100% parity check.                                      |
+| `permforge_cluster`            | Clusters multiple profiles across the org to extract `Standard_Employee_Baseline` + role-specific deltas.                                             |
+| `permforge_verify`             | Mathematically proves access parity between a source Profile and target Permission Sets / PSG.                                                        |
+| `permforge_strip`              | Removes deprecated permissions from `.profile-meta.xml` while preserving layout assignments and settings.                                             |
+| `permforge_lint`               | Scans profiles for deprecated permissions and reports compliance for CI/CD and PR reviews.                                                            |
+| `permforge_uap`                | Generates native Salesforce `UserAccessPolicy` metadata for automated user provisioning.                                                              |
+| `permforge_mute`               | Generates `MutingPermissionSet` metadata to restrict actions (e.g. Delete) on a PSG.                                                                  |
+| `permforge_graph`              | Emits interactive Mermaid diagrams or ASCII trees of the permission hierarchy.                                                                        |
 
 ---
 

@@ -21,6 +21,10 @@ export default class Analyze extends Command {
       description: 'Path to a profile file, directory, or glob pattern',
       default: 'force-app/main/default/profiles',
     }),
+    'target-org': Flags.string({
+      char: 'o',
+      description: 'Analyze profiles directly from an authenticated live Salesforce org',
+    }),
     json: Flags.boolean({
       description: 'Format output as JSON',
       default: false,
@@ -30,13 +34,23 @@ export default class Analyze extends Command {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Analyze);
 
-    const reader = new ProfileReader();
     const analyzer = new ProfileAnalyzer();
+    let profiles;
 
-    const profiles = await reader.loadProfiles(flags.source);
+    if (flags['target-org']) {
+      const { SalesforceOrgService } = await import('../services/salesforce-org.js');
+      const orgService = new SalesforceOrgService();
+      this.log(pc.cyan(`\n☁️ Connecting to Salesforce org '${flags['target-org']}'...`));
+      const all = await orgService.listProfiles(flags['target-org'], { customOnly: true });
+      const customNames = all.filter((p) => p.custom).map((p) => p.name);
+      profiles = await orgService.retrieveProfiles(customNames, flags['target-org']);
+    } else {
+      const reader = new ProfileReader();
+      profiles = await reader.loadProfiles(flags.source);
+    }
 
     if (profiles.length === 0) {
-      this.warn(`No profile metadata files found at: ${flags.source}`);
+      this.warn(flags['target-org'] ? `No custom profiles found in org '${flags['target-org']}'` : `No profile metadata files found at: ${flags.source}`);
       return;
     }
 

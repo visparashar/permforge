@@ -20,6 +20,14 @@
           "multiple": false,
           "type": "option"
         },
+        "target-org": {
+          "char": "o",
+          "description": "Analyze profiles directly from an authenticated live Salesforce org",
+          "name": "target-org",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
         "json": {
           "description": "Format output as JSON",
           "name": "json",
@@ -474,6 +482,28 @@
           "allowNo": false,
           "type": "boolean"
         },
+        "target-org": {
+          "char": "o",
+          "description": "Connect directly to a live Salesforce org (alias or username)",
+          "name": "target-org",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "deploy": {
+          "description": "Deploy generated Permission Sets and PSGs to the target org upon completion",
+          "name": "deploy",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profiles": {
+          "char": "p",
+          "description": "Comma-separated profile names to process when targeting a live org",
+          "name": "profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
         "dry-run": {
           "description": "Simulate pipeline without writing files to disk",
           "name": "dry-run",
@@ -611,6 +641,76 @@
         "dist",
         "commands",
         "report.js"
+      ]
+    },
+    "retrieve": {
+      "aliases": [],
+      "args": {},
+      "description": "Retrieve profile metadata directly from an authenticated live Salesforce org",
+      "examples": [
+        "<%= config.bin %> retrieve --list",
+        "<%= config.bin %> retrieve --target-org my-sandbox --list",
+        "<%= config.bin %> retrieve --target-org my-sandbox --profiles \"Custom_Admin,Sales_User\"",
+        "<%= config.bin %> retrieve --all-custom --output-dir force-app/main/default/profiles"
+      ],
+      "flags": {
+        "target-org": {
+          "char": "o",
+          "description": "Salesforce org username or alias (defaults to default SFDX/SF org)",
+          "name": "target-org",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "profiles": {
+          "char": "p",
+          "description": "Comma-separated list of profile names to retrieve",
+          "name": "profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "all-custom": {
+          "description": "Retrieve all custom profiles found in the org",
+          "name": "all-custom",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for retrieved .profile-meta.xml files",
+          "name": "output-dir",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "list": {
+          "description": "List all profiles available in the live org without retrieving",
+          "name": "list",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "retrieve",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "retrieve.js"
       ]
     },
     "strip": {

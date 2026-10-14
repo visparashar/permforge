@@ -55,6 +55,18 @@ export default class Pipeline extends Command {
       description: 'Strict mode: fail pipeline and exit with error if parity < 100% or any stage fails',
       default: false,
     }),
+    'target-org': Flags.string({
+      char: 'o',
+      description: 'Connect directly to a live Salesforce org (alias or username)',
+    }),
+    deploy: Flags.boolean({
+      description: 'Deploy generated Permission Sets and PSGs to the target org upon completion',
+      default: false,
+    }),
+    profiles: Flags.string({
+      char: 'p',
+      description: 'Comma-separated profile names to process when targeting a live org',
+    }),
     'dry-run': Flags.boolean({
       description: 'Simulate pipeline without writing files to disk',
       default: false,
@@ -88,6 +100,9 @@ export default class Pipeline extends Command {
       outputDir: flags['output-dir'],
       strict: flags.strict,
       dryRun: flags['dry-run'],
+      targetOrg: flags['target-org'],
+      deploy: flags.deploy,
+      profiles: flags.profiles ? flags.profiles.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
       stages: {
         audit: { enabled: true },
         cluster: { enabled: flags.cluster, threshold: 0.75, baselineName: 'Standard_Employee_Baseline' },

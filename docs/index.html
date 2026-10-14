@@ -151,11 +151,11 @@
               <span class="stat-label">Mathematical Parity Proof</span>
             </div>
             <div class="stat-card">
-              <span class="stat-number">14</span>
+              <span class="stat-number">15</span>
               <span class="stat-label">Production CLI Commands</span>
             </div>
             <div class="stat-card">
-              <span class="stat-number">10</span>
+              <span class="stat-number">12</span>
               <span class="stat-label">Native MCP Tools for AI Agents</span>
             </div>
             <div class="stat-card">
@@ -604,7 +604,7 @@
             <span class="section-tag">Command Line Interface</span>
             <h2 class="section-title">Complete CLI Reference</h2>
             <p class="section-subtitle">
-              14 purpose-built commands covering discovery, decomposition, verification, and
+              15 purpose-built commands covering discovery, decomposition, verification, and
               automated assignment.
             </p>
           </div>
@@ -664,7 +664,38 @@
               </div>
             </div>
 
-            <!-- 1: analyze -->
+            <!-- 1: retrieve -->
+            <div class="cli-card" data-name="retrieve" data-tag="audit migration">
+              <div class="cli-head">
+                <span class="cli-name">permforge retrieve</span>
+                <span class="cli-badge" style="background: rgba(56, 189, 248, 0.2); color: #7dd3fc;">Live Org API</span>
+              </div>
+              <p class="cli-desc">
+                Connects directly to an authenticated Salesforce org via sf/sfdx auth cache and retrieves profiles via Metadata API in batch chunks.
+              </p>
+              <div class="cli-snippet">
+                <code>permforge retrieve -o my-org --all-custom</code>
+                <button
+                  class="copy-btn-sm"
+                  data-copy="permforge retrieve -o my-org --all-custom"
+                  title="Copy"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2: analyze -->
             <div class="cli-card" data-name="analyze" data-tag="audit">
               <div class="cli-head">
                 <span class="cli-name">permforge analyze</span>
@@ -1099,12 +1130,14 @@
                   style="color: #38bdf8"
                   >Model Context Protocol (MCP)</a
                 >
-                standard. When running in your IDE or desktop AI client, agents have 10 native tools
+                standard. When running in your IDE or desktop AI client, agents have 12 native tools
                 to inspect, plan, decompose, and verify changes safely.
               </p>
 
               <div class="mcp-tools-list">
                 <div class="mcp-tool-pill" style="border-color: #8b5cf6; color: #c4b5fd;"><span>&#9656;</span> permforge_pipeline</div>
+                <div class="mcp-tool-pill" style="border-color: #38bdf8; color: #7dd3fc;"><span>&#9656;</span> permforge_retrieve_profiles</div>
+                <div class="mcp-tool-pill" style="border-color: #38bdf8; color: #7dd3fc;"><span>&#9656;</span> permforge_list_org_profiles</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> analyze_profiles</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> cluster_profiles</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> decompose_profile</div>

@@ -9,11 +9,14 @@ import { ProfileStripper } from './profile-stripper.js';
 import { UapBuilder } from './uap-builder.js';
 import { RolloutPlanner } from './rollout-planner.js';
 import { HtmlReporter } from './html-reporter.js';
+import { SalesforceOrgService } from '../services/salesforce-org.js';
 import {
   DecompositionStrategy,
   ProfileAnalysis,
   ParityReport,
   ClusterResult,
+  GeneratedPermissionSet,
+  GeneratedPermissionSetGroup,
 } from '../types/decomposition.js';
 
 export interface PipelineStageConfig {
@@ -22,10 +25,13 @@ export interface PipelineStageConfig {
 }
 
 export interface PipelineConfig {
-  sourceDir: string;
+  sourceDir?: string;
   outputDir: string;
   strict?: boolean;
   dryRun?: boolean;
+  targetOrg?: string;
+  deploy?: boolean;
+  profiles?: string[];
   stages?: {
     audit?: PipelineStageConfig;
     cluster?: PipelineStageConfig & { threshold?: number; baselineName?: string };
@@ -102,8 +108,48 @@ export class PipelineRunner {
     let profilesSanitized = 0;
     let reportGeneratedPath: string | undefined;
 
-    // Discover profiles
-    const profiles = await this.reader.loadProfiles(config.sourceDir);
+    const allGeneratedSets: GeneratedPermissionSet[] = [];
+    const allGeneratedGroups: GeneratedPermissionSetGroup[] = [];
+
+    // Discover profiles (from targetOrg or local sourceDir)
+    let profiles: LoadedProfile[] = [];
+    if (config.targetOrg) {
+      try {
+        const orgService = new SalesforceOrgService();
+        let targetNames = config.profiles;
+        if (!targetNames || targetNames.length === 0) {
+          const all = await orgService.listProfiles(config.targetOrg, { customOnly: true });
+          targetNames = all.filter((p) => p.custom).map((p) => p.name);
+        }
+        profiles = await orgService.retrieveProfiles(targetNames, config.targetOrg, {
+          saveToDir: dryRun ? undefined : path.join(outputDir, 'profiles'),
+        });
+      } catch (err: any) {
+        return {
+          success: false,
+          totalDurationMs: Date.now() - startTime,
+          profilesProcessed: 0,
+          stages: [
+            {
+              stage: 'discovery',
+              status: 'FAILED',
+              durationMs: Date.now() - startTime,
+              message: `Could not retrieve profiles from target org '${config.targetOrg}': ${err.message}`,
+            },
+          ],
+          summary: {
+            totalPermissionSetsCreated: 0,
+            totalGroupsCreated: 0,
+            averageParityScore: 0,
+            allParityPassed: false,
+            profilesSanitized: 0,
+          },
+        };
+      }
+    } else if (config.sourceDir) {
+      profiles = await this.reader.loadProfiles(config.sourceDir);
+    }
+
     if (profiles.length === 0) {
       return {
         success: false,
@@ -114,7 +160,9 @@ export class PipelineRunner {
             stage: 'discovery',
             status: 'FAILED',
             durationMs: Date.now() - startTime,
-            message: `No profiles found at: ${config.sourceDir}`,
+            message: config.targetOrg
+              ? `No custom profiles found in target org '${config.targetOrg}'`
+              : `No profiles found at: ${config.sourceDir}`,
           },
         ],
         summary: {
@@ -173,6 +221,12 @@ export class PipelineRunner {
         totalPermSets += 1 + clusteredResult.profileDeltas.reduce((acc, d) => acc + d.deltaPermissionSets.length, 0);
         totalGroups += clusteredResult.profileDeltas.filter((d) => d.permissionSetGroup).length;
 
+        allGeneratedSets.push(clusteredResult.baselinePermissionSet);
+        for (const delta of clusteredResult.profileDeltas) {
+          allGeneratedSets.push(...delta.deltaPermissionSets);
+          if (delta.permissionSetGroup) allGeneratedGroups.push(delta.permissionSetGroup);
+        }
+
         stageResults.push({
           stage: 'cluster',
           status: 'SUCCESS',
@@ -212,6 +266,9 @@ export class PipelineRunner {
 
           totalPermSets += result.permissionSets.length;
           if (result.permissionSetGroup) totalGroups += 1;
+
+          allGeneratedSets.push(...result.permissionSets);
+          if (result.permissionSetGroup) allGeneratedGroups.push(result.permissionSetGroup);
 
           // STAGE 4: Mathematical Parity Verification
           const report = this.parityEngine.verifyParity(
@@ -466,6 +523,48 @@ export class PipelineRunner {
         durationMs: 0,
         message: 'HTML report generation disabled.',
       });
+    }
+
+    // STAGE 9: Target Org Deployment (Optional)
+    const stageDeployStart = Date.now();
+    if (config.deploy && config.targetOrg) {
+      if (dryRun) {
+        stageResults.push({
+          stage: 'deploy',
+          status: 'SKIPPED',
+          durationMs: 0,
+          message: `Dry run enabled: skipping deployment to live Salesforce org '${config.targetOrg}'.`,
+        });
+      } else if (!allParityPassed) {
+        stageResults.push({
+          stage: 'deploy',
+          status: 'FAILED',
+          durationMs: Date.now() - stageDeployStart,
+          message: 'Deployment blocked: access parity is not 100%. Fix discrepancies before deploying.',
+        });
+      } else {
+        try {
+          const orgService = new SalesforceOrgService();
+          const psResult = await orgService.deployPermissionSets(allGeneratedSets, config.targetOrg);
+          const psgResult = await orgService.deployPermissionSetGroups(allGeneratedGroups, config.targetOrg);
+
+          const hasErrors = psResult.errors.length > 0 || psgResult.errors.length > 0;
+          stageResults.push({
+            stage: 'deploy',
+            status: hasErrors ? 'WARNING' : 'SUCCESS',
+            durationMs: Date.now() - stageDeployStart,
+            message: `Deployed ${psResult.created.length} Permission Sets and ${psgResult.created.length} PSGs to org '${config.targetOrg}'.` +
+              (hasErrors ? ` (Errors: ${[...psResult.errors, ...psgResult.errors].join('; ')})` : ''),
+          });
+        } catch (err: any) {
+          stageResults.push({
+            stage: 'deploy',
+            status: 'FAILED',
+            durationMs: Date.now() - stageDeployStart,
+            message: `Deployment failed: ${err.message}`,
+          });
+        }
+      }
     }
 
     return this.buildResult(
