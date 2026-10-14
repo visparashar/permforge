@@ -1,0 +1,56 @@
+name: 'PermForge: Salesforce Security & Parity Gate'
+description: 'Enforces Salesforce 2026 Profile Permissions retirement, blocks permission creep in pull requests, and guarantees 100% mathematical parity.'
+author: 'Vishal Parashar'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  profiles-directory:
+    description: 'Path or glob pattern to Salesforce profile metadata files.'
+    required: false
+    default: 'force-app/main/default/profiles'
+  output-directory:
+    description: 'Path to destination directory for Permission Sets and Permission Set Groups.'
+    required: false
+    default: 'force-app/main/default'
+  strict-parity:
+    description: 'Fail the check if mathematical parity against generated Permission Sets is less than 100.0%.'
+    required: false
+    default: 'true'
+  block-profile-permissions:
+    description: 'Fail the check if new object, field, or user permissions are added to profiles in the pull request.'
+    required: false
+    default: 'true'
+  max-complexity-score:
+    description: 'Maximum allowable profile technical debt complexity score before issuing warnings (0-100).'
+    required: false
+    default: '75'
+  fail-on-risk:
+    description: 'Fail the check if critical high-risk permissions (ModifyAllData, AuthorApex) are granted.'
+    required: false
+    default: 'false'
+  post-pr-comment:
+    description: 'Post or update an interactive audit report comment directly on the Pull Request.'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token used to post PR comments and inline annotations.'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  passed:
+    description: 'Boolean flag indicating whether all gate checks passed.'
+  profiles-scanned:
+    description: 'Total number of profile metadata files audited.'
+  permission-creep-count:
+    description: 'Number of newly added permissions detected on legacy profiles.'
+  parity-failures:
+    description: 'Number of profiles that failed the 100% parity verification gate.'
+  average-complexity-debt:
+    description: 'Average technical debt complexity score across all scanned profiles.'
+
+runs:
+  using: 'node20'
+  main: 'action/dist/index.cjs'

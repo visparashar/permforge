@@ -1,0 +1,33 @@
+name: PermForge Security & Parity Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  permforge-security-gate:
+    name: PermForge Policy & Parity Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run PermForge Action Gate
+        uses: ./
+        with:
+          profiles-directory: 'test/fixtures/profiles'
+          strict-parity: true
+          block-profile-permissions: true
+          max-complexity-score: 100
+          fail-on-risk: false
+          post-pr-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}

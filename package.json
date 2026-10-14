@@ -47,6 +47,7 @@
     "lint": "tsc --noEmit",
     "build:vscode": "npm --prefix vscode-extension run build",
     "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies",
+    "build:action": "esbuild action/src/index.ts --bundle --outfile=action/dist/index.cjs --platform=node --target=node20 --format=cjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "demo:gif": "node scripts/generate-demo-gif.js"
@@ -116,6 +117,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@oclif/plugin-help": "^6.2.26",
     "@types/jsforce": "^1.11.6",
     "@types/node": "^22.13.0",

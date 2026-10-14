@@ -557,6 +557,52 @@ Add PermForge to your MCP configuration file:
 
 ---
 
+## 🤖 GitHub Action: Automated Security & Parity Gate
+
+PermForge provides a plug-and-play GitHub Action to enforce the Salesforce 2026 Profile Permissions retirement policy directly in your Pull Requests.
+
+Add this workflow to your repository (`.github/workflows/permforge-gate.yml`):
+
+```yaml
+name: PermForge Security & Parity Gate
+
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  permforge-gate:
+    name: PermForge Policy & Parity Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run PermForge Action Gate
+        uses: visparashar/permforge@main
+        with:
+          profiles-directory: 'force-app/main/default/profiles'
+          strict-parity: true
+          block-profile-permissions: true
+          max-complexity-score: 75
+          fail-on-risk: false
+          post-pr-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### What It Does in Your PRs:
+1. **Blocks Permission Creep:** Fails the PR if someone adds new `<objectPermissions>`, `<fieldPermissions>`, or `<userPermissions>` to legacy profiles, enforcing migration to Permission Sets.
+2. **100% Mathematical Parity Gate:** Verifies bit-for-bit equivalence between Profiles and generated Permission Set Groups, failing on any drift.
+3. **Interactive PR Comments & Step Summary:** Posts a rich summary table with complexity debt scores, audited SObjects, and high-risk flags.
+4. **Inline Annotations:** Emits native GitHub red and yellow warning annotations on exact modified lines.
+
+---
+
 ## 💻 Programmatic API Usage
 
 PermForge can be embedded directly in your custom TypeScript / JavaScript scripts, CI/CD pipelines, or GitHub Actions:
