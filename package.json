@@ -46,7 +46,7 @@
     "test:watch": "vitest test/",
     "lint": "tsc --noEmit",
     "build:vscode": "npm --prefix vscode-extension run build",
-    "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies",
+    "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies --no-git-tag-version",
     "build:action": "esbuild action/src/index.ts --bundle --outfile=action/dist/index.cjs --platform=node --target=node20 --format=cjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

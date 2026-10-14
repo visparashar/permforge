@@ -5,7 +5,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build outputs
-dist/
+/dist/
+/vscode-extension/dist/
+!action/dist/
 *.tsbuildinfo
 
 # Test and coverage
