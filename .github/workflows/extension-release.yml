@@ -1,0 +1,98 @@
+name: Release VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'extension-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      publish_openvsx:
+        description: 'Publish to Open VSX registry'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  package-and-publish:
+    name: Package VSIX & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Build PermForge Core Engine
+        run: npm run build
+
+      - name: Install Extension Dependencies
+        run: |
+          cd vscode-extension
+          npm ci || npm install
+
+      - name: Sync Extension Version from Git Tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/extension-v* ]]; then
+            TAG_VER="${GITHUB_REF_NAME#extension-v}"
+            echo "Syncing package.json version to $TAG_VER from tag $GITHUB_REF_NAME"
+            npm --prefix vscode-extension version "$TAG_VER" --no-git-tag-version --allow-same-version
+          fi
+
+      - name: Package VSIX Extension
+        run: |
+          cd vscode-extension
+          npm run build
+          npx @vscode/vsce package --no-dependencies --no-git-tag-version
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-permforge-vsix
+          path: vscode-extension/*.vsix
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/extension-v')
+        with:
+          name: Extension ${{ github.ref_name }}
+          generate_release_notes: true
+          files: vscode-extension/*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Open VSX Registry
+        if: inputs.publish_openvsx != false
+        run: |
+          if [ -n "$OVSX_PAT" ]; then
+            echo "Publishing to Open VSX Registry..."
+            npx --yes ovsx publish vscode-extension/*.vsix --skip-duplicate
+          else
+            echo "::warning::OVSX_PAT secret is not configured in repository secrets. Skipping Open VSX automatic publish. The .vsix is ready in workflow artifacts and GitHub Releases."
+          fi
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      - name: Deploy to VS Code Marketplace (Optional)
+        run: |
+          if [ -n "$VSCE_PAT" ]; then
+            echo "Publishing to Visual Studio Marketplace..."
+            npx --yes @vscode/vsce publish --packagePath vscode-extension/*.vsix -p "$VSCE_PAT"
+          else
+            echo "VSCE_PAT secret not configured. Skipping automatic VS Code Marketplace upload. You can download the .vsix artifact and upload it manually via marketplace.visualstudio.com/manage."
+          fi
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        continue-on-error: true
