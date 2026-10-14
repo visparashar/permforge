@@ -3,33 +3,38 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js CI](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/Tests-20%2F20%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
 [![Salesforce DX](https://img.shields.io/badge/Salesforce-DX-00A1E0.svg)](https://developer.salesforce.com/)
 
-> **Intelligent Salesforce Profile to Permission Set & Permission Set Group migration engine with 100% access parity guarantee.**
+> **The Complete, Open-Source Salesforce Profile to Permission Set & Permission Set Group Migration Platform.**
 
 ---
 
-## ⚡ The Problem: The Salesforce Profile Sunset
+## ⚡ The Challenge: Salesforce Profile Sunset
 
-Salesforce has officially announced the retirement of permissions on Profiles (User Permissions, Object Permissions, Field-Level Security, Apex Class Access, Visualforce Access, and Custom Permissions). Moving forward, Profiles are restricted purely to authentication and session defaults (Login Hours, IP Ranges, Default Page Layouts).
+Salesforce has officially announced the retirement of permissions on legacy Profiles. Moving forward, Profiles are restricted purely to one-to-one credential settings (Login Hours, IP Ranges, Default Page Layouts, Default Record Types). All functional permissions—Object CRUD, Field-Level Security (FLS), System User Permissions, and Apex Class Access—must be migrated to **Permission Sets** and **Permission Set Groups (PSGs)**.
 
-### Why Traditional Migration Fails
+### Why Migrating by Hand Fails
 
 1. **The 1:1 Monolithic Trap:** Naively converting a Profile into a single giant Permission Set copies all technical debt into a new folder.
-2. **Untangling Spaghetti:** Manually splitting hundreds of objects, thousands of fields, and dozens of administrative permissions takes weeks of clicking in the Setup UI.
-3. **Fear of Regressions:** A single missing Field-Level Security (FLS) or Object permission breaks mission-critical business processes or API integrations.
+2. **Intractable Untangling:** Manually splitting hundreds of objects and thousands of fields takes weeks of error-prone clicking in the Setup UI.
+3. **Fear of Regressions:** A single missing FLS or Object permission breaks business operations, integrations, or reports.
+4. **CI/CD Drift:** Developers accidentally re-introduce profile permissions in Git merges during day-to-day development.
 
 ---
 
 ## 🚀 The Solution: PermForge
 
-**PermForge** is an open-source CLI and Node.js library that:
+**PermForge** provides an end-to-end automated lifecycle to audit, modularize, verify, sanitize, and govern your Salesforce permissions:
 
-- 🔍 **Audits Profiles:** Scans local SFDX metadata to inventory permissions, scores complexity, and flags high-risk capabilities (`ModifyAllData`, `AuthorApex`, etc.).
-- 🔨 **Intelligently Decomposes:** Automatically refactors monolithic profiles into clean, modular, domain-aligned Permission Sets (e.g. `Account_Management`, `Sales_Opportunity`, `System_Permissions`, `Apex_Access`).
-- 📦 **Generates Permission Set Groups (PSGs):** Bundles the modular Permission Sets into a Persona-based Permission Set Group that mirrors the original role.
-- 🛡️ **Guarantees 100% Parity:** Includes a mathematical diff engine that verifies zero access loss before you deploy to production.
-- 📋 **Rollout Automation:** Emits user assignment CSV templates, deployment guides, and automated shell scripts with instant rollback capability.
+```mermaid
+flowchart LR
+    A["1. AUDIT<br/>analyze / report"] --> B["2. MODULARIZE<br/>decompose / cluster"]
+    B --> C["3. VERIFY<br/>verify (100% Parity)"]
+    C --> D["4. SANITIZE<br/>strip / clean"]
+    D --> E["5. GOVERN<br/>lint / graph"]
+    E --> F["6. AUTOMATE<br/>uap / mute / plan"]
+```
 
 ---
 
@@ -41,7 +46,7 @@ Salesforce has officially announced the retirement of permissions on Profiles (U
 npm install -g permforge
 ```
 
-### Run via `npx` (No installation needed)
+### Run via `npx` (Zero Installation)
 
 ```bash
 npx permforge --help
@@ -51,6 +56,74 @@ npx permforge --help
 
 ```bash
 npm install permforge
+```
+
+---
+
+## ⚡ Quick Command Reference
+
+| Command                              | Description                                                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **`permforge analyze`**              | Scans profiles, inventories permissions, flags high-risk access, and scores complexity (0–100).                       |
+| **`permforge report`**               | Generates an interactive, standalone HTML audit report with security heatmaps and parity tables.                      |
+| **`permforge decompose`**            | Decomposes legacy profiles into domain-aligned Permission Sets and Persona-based PSGs.                                |
+| **`permforge cluster`**              | Cross-profile clustering: extracts a shared `Standard_Employee_Baseline` and isolates deltas.                         |
+| **`permforge verify`**               | Mathematical diff engine proving 100% access parity (zero permissions dropped).                                       |
+| **`permforge strip`** _(or `clean`)_ | Removes deprecated permissions from `.profile-meta.xml` while preserving layout assignments & login settings.         |
+| **`permforge uap`**                  | Generates native Salesforce **User Access Policies** (`.userAccessPolicy-meta.xml`) for zero-touch provisioning.      |
+| **`permforge mute`**                 | Generates **Muting Permission Sets** (`.mutingpermissionset-meta.xml`) to selectively restrict actions (e.g. Delete). |
+| **`permforge lint`**                 | CI/CD pre-commit and PR scanner to enforce the zero-profile-permissions standard.                                     |
+| **`permforge graph`**                | Visualizes permission architecture hierarchy (PSG -> Permission Sets -> SObjects) in ASCII or Mermaid.                |
+| **`permforge plan`**                 | Generates user assignment CSV templates, migration shell scripts, and rollback procedures.                            |
+| **`permforge wizard`**               | Interactive, guided terminal wizard with arrow-key menus.                                                             |
+
+---
+
+## 📖 5-Minute Migration Walkthrough
+
+Here is the recommended enterprise workflow for migrating a Salesforce repository:
+
+### Step 1: Audit Your Repository
+
+```bash
+# Scan and view profile complexity in your terminal
+permforge analyze --source force-app/main/default/profiles
+
+# Generate an interactive HTML audit dashboard
+permforge report --source force-app/main/default/profiles --output audit-report.html
+```
+
+### Step 2: Cluster & Decompose Permissions
+
+```bash
+# Analyze all profiles and extract a shared baseline + role deltas
+permforge cluster --source force-app/main/default/profiles --threshold 0.75 --output-dir force-app/main/default
+```
+
+### Step 3: Verify 100% Security Parity
+
+```bash
+# Verify that no user loses access under their new Permission Set Group
+permforge verify \
+  --profile force-app/main/default/profiles/Sales_User.profile-meta.xml \
+  --group force-app/main/default/permissionsetgroups/Sales_User_PSG.permissionsetgroup-meta.xml
+```
+
+### Step 4: Sanitize Legacy Profiles
+
+```bash
+# Strip deprecated permissions from profiles (creates .bak backup automatically)
+permforge strip --source force-app/main/default/profiles --in-place
+```
+
+### Step 5: Automate User Provisioning & Governance
+
+```bash
+# 1. Create a native User Access Policy to auto-assign the PSG
+permforge uap --name Sales_Auto_Assign --group Sales_User_PSG --criteria "Department=Sales"
+
+# 2. Add CI/CD linting check to your GitHub Actions workflow
+permforge lint --github-actions
 ```
 
 ---
@@ -92,7 +165,21 @@ permforge analyze --json
 
 ---
 
-### 2. `permforge decompose`
+### 2. `permforge cluster`
+
+Analyzes multiple profiles simultaneously to extract a shared **`Standard_Employee_Baseline`** Permission Set for permissions common across your organization (e.g. granted by $\ge 75\%$ of profiles). Generates modular delta permission sets and bundles them into Persona PSGs.
+
+```bash
+# Cluster all profiles in the project with default 75% threshold
+permforge cluster
+
+# Custom threshold (e.g. 60% of profiles) and custom baseline name
+permforge cluster --source force-app/main/default/profiles --threshold 0.6 --base-name "Global_Core_Access"
+```
+
+---
+
+### 3. `permforge decompose`
 
 Decomposes a profile into modular Permission Sets and bundles them into a Persona-based Permission Set Group (`.permissionsetgroup-meta.xml`). Automatically runs a parity check upon completion.
 
@@ -107,7 +194,7 @@ permforge decompose --source force-app/main/default/profiles --output-dir force-
 permforge decompose --source path/to/Profile.profile-meta.xml --strategy by-domain
 ```
 
-**What gets generated:**
+**Generated Artifacts:**
 
 - `permissionsets/<Profile>_<Domain>.permissionset-meta.xml`: Cohesive SObject CRUD + Field FLS + Tabs + Record Types.
 - `permissionsets/<Profile>_System_Permissions.permissionset-meta.xml`: Administrative and user permissions.
@@ -117,9 +204,9 @@ permforge decompose --source path/to/Profile.profile-meta.xml --strategy by-doma
 
 ---
 
-### 3. `permforge verify`
+### 4. `permforge verify`
 
-Mathematically compares the original Profile against the generated Permission Sets / PSG. Verifies whether any object, field, user, or class permissions were omitted or altered.
+Mathematically compares the original Profile against the target Permission Sets / PSG. Verifies whether any object, field, user, or class permissions were omitted or altered.
 
 ```bash
 # Verify against a Permission Set Group
@@ -157,7 +244,102 @@ permforge verify \
 
 ---
 
-### 4. `permforge plan`
+### 5. `permforge strip` (or `clean`)
+
+Sanitizes legacy profiles by removing all deprecated permissions (Object, Field FLS, User Perms, Apex classes) while preserving necessary layout assignments, default record types, and login settings.
+
+```bash
+# Strip permissions in-place with automatic .bak backup
+permforge strip --source force-app/main/default/profiles --in-place
+
+# Output sanitized profiles to a separate directory
+permforge strip --source force-app/main/default/profiles --output-dir force-app/main/default/clean-profiles
+```
+
+---
+
+### 6. `permforge uap`
+
+Generates native Salesforce **User Access Policy (UAP)** metadata (`.userAccessPolicy-meta.xml`) to automate continuous, zero-touch user provisioning when users are created or updated.
+
+```bash
+# Auto-assign PSG when User.Department is Sales
+permforge uap \
+  --name Sales_User_Auto_Assign \
+  --group Sales_User_PSG \
+  --criteria "Department=Sales,UserType=Standard"
+```
+
+---
+
+### 7. `permforge mute`
+
+Generates a **Muting Permission Set** (`.mutingpermissionset-meta.xml`) targeting a Permission Set Group to selectively restrict sensitive actions (e.g. Delete) for junior or contractor roles without cloning permission set groups.
+
+```bash
+# Mute Delete on Account and Opportunity in a PSG
+permforge mute --name Sales_Junior_Mute --mute-delete Account,Opportunity
+```
+
+---
+
+### 8. `permforge lint`
+
+CI/CD pre-commit and Pull Request scanner that verifies zero deprecated permissions remain in `.profile-meta.xml` files. Emits GitHub Actions annotations and fails builds on violations.
+
+```bash
+# Lint profiles in CI pipeline
+permforge lint
+
+# Enable GitHub Actions workflow annotations
+permforge lint --github-actions
+```
+
+---
+
+### 9. `permforge graph`
+
+Visualizes your permission architecture hierarchy and dependencies (`PSG -> Permission Sets -> SObjects`) as an ASCII terminal tree or exportable Mermaid diagram.
+
+```bash
+# Print ASCII dependency tree to terminal
+permforge graph
+
+# Export Mermaid diagram for documentation
+permforge graph --format markdown --output PERMISSION_GRAPH.md
+```
+
+**Example ASCII Output:**
+
+```text
+📦 [PSG] Sales_User_PSG
+    ├── 🔑 [PS] Standard_Employee_Baseline
+    │   ├── 📄 Account
+    │   ├── 📄 Case
+    │   └── 📄 Contact
+    ├── 🔑 [PS] Sales_User_Delta_Apex_Access
+    ├── 🔑 [PS] Sales_User_Delta_Custom_Permissions
+    └── 🔑 [PS] Sales_User_Delta_Data_Access
+            └── 📄 Opportunity
+```
+
+---
+
+### 10. `permforge report`
+
+Generates a standalone, interactive HTML security dashboard with complexity meters, high-risk security alerts, and access parity matrices. Zero external dependencies—works completely offline.
+
+```bash
+# Generate report for local profiles
+permforge report
+
+# Custom output destination
+permforge report --source force-app/main/default/profiles --output ./audit-reports/security-audit.html
+```
+
+---
+
+### 11. `permforge plan`
 
 Generates a complete, battle-tested migration package:
 
@@ -176,35 +358,7 @@ permforge plan \
 
 ---
 
-### 5. `permforge cluster`
-
-Analyzes multiple profiles simultaneously to extract a shared **`Standard_Employee_Baseline`** Permission Set for permissions common across your organization (e.g. granted by $\ge 75\%$ of profiles). Generates modular delta permission sets for role-specific access, adhering to Salesforce Well-Architected standards.
-
-```bash
-# Cluster all profiles in the project with default 75% threshold
-permforge cluster
-
-# Custom threshold (e.g. 60% of profiles) and custom baseline name
-permforge cluster --source force-app/main/default/profiles --threshold 0.6 --base-name "Global_Core_Access"
-```
-
----
-
-### 6. `permforge report`
-
-Generates a standalone, interactive HTML security dashboard with complexity meters, high-risk security alerts, and access parity matrices. Zero external dependencies—works completely offline.
-
-```bash
-# Generate report for local profiles
-permforge report
-
-# Custom output destination
-permforge report --source force-app/main/default/profiles --output ./audit-reports/security-audit.html
-```
-
----
-
-### 7. `permforge wizard`
+### 12. `permforge wizard`
 
 Interactive, guided terminal wizard that prompts you step-by-step through profile auditing, decomposition, clustering, and migration planning with intuitive arrow-key menus.
 
@@ -214,106 +368,39 @@ permforge wizard
 
 ---
 
-### 8. `permforge strip` (or `clean`)
-
-Sanitizes legacy profiles by removing all deprecated permissions (Object, Field FLS, User Perms, Apex classes) while preserving necessary layout assignments, default record types, and login settings.
-
-```bash
-# Strip permissions in-place with automatic .bak backup
-permforge strip --source force-app/main/default/profiles --in-place
-
-# Output sanitized profiles to a separate directory
-permforge strip --source force-app/main/default/profiles --output-dir force-app/main/default/clean-profiles
-```
-
----
-
-### 9. `permforge uap`
-
-Generates native Salesforce **User Access Policy (UAP)** metadata (`.userAccessPolicy-meta.xml`) to automate continuous, zero-touch user provisioning when users are created or updated.
-
-```bash
-# Auto-assign PSG when User.Department is Sales
-permforge uap \
-  --name Sales_User_Auto_Assign \
-  --group Sales_User_PSG \
-  --criteria "Department=Sales,UserType=Standard"
-```
-
----
-
-### 10. `permforge mute`
-
-Generates a **Muting Permission Set** (`.mutingpermissionset-meta.xml`) targeting a Permission Set Group to selectively restrict sensitive actions (e.g. Delete) for junior or contractor roles without cloning permission set groups.
-
-```bash
-# Mute Delete on Account and Opportunity in a PSG
-permforge mute --name Sales_Junior_Mute --mute-delete Account,Opportunity
-```
-
----
-
-### 11. `permforge lint`
-
-CI/CD pre-commit and Pull Request scanner that verifies zero deprecated permissions remain in `.profile-meta.xml` files. Emits GitHub Actions annotations and fails builds on violations.
-
-```bash
-# Lint profiles in CI pipeline
-permforge lint
-
-# Enable GitHub Actions workflow annotations
-permforge lint --github-actions
-```
-
----
-
-### 12. `permforge graph`
-
-Visualizes your permission architecture hierarchy and dependencies (PSG -> Permission Sets -> SObjects) as an ASCII terminal tree or exportable Mermaid diagram.
-
-```bash
-# Print ASCII dependency tree to terminal
-permforge graph
-
-# Export Mermaid diagram for documentation
-permforge graph --format markdown --output PERMISSION_GRAPH.md
-```
-
----
-
 ## 💻 Programmatic API Usage
 
 PermForge can be embedded directly in your custom TypeScript / JavaScript scripts, CI/CD pipelines, or GitHub Actions:
 
 ```typescript
-import { ProfileReader, ProfileAnalyzer, ProfileDecomposer, ParityEngine } from 'permforge';
+import {
+  ProfileReader,
+  ProfileAnalyzer,
+  ClusterEngine,
+  ParityEngine,
+  ProfileStripper,
+  ProfileLinter,
+} from 'permforge';
 
 // 1. Read profile
 const reader = new ProfileReader();
-const profile = await reader.loadProfile(
-  'force-app/main/default/profiles/Sales_User.profile-meta.xml'
-);
+const profiles = await reader.loadProfiles('force-app/main/default/profiles');
 
-// 2. Analyze
-const analyzer = new ProfileAnalyzer();
-const analysis = analyzer.analyzeProfile(profile);
-console.log(`Complexity score: ${analysis.complexityScore}/100`);
-
-// 3. Decompose
-const decomposer = new ProfileDecomposer();
-const result = await decomposer.decompose(profile, {
+// 2. Cluster across all profiles to extract baseline + deltas
+const clusterEngine = new ClusterEngine();
+const result = await clusterEngine.clusterProfiles(profiles, {
+  threshold: 0.75,
+  baselineName: 'Standard_Employee_Baseline',
   outputDir: 'force-app/main/default',
-  strategy: 'by-domain',
-  createGroup: true,
+  createGroups: true,
 });
 
-// 4. Verify Parity
+// 3. Verify access parity
 const parityEngine = new ParityEngine();
-const parity = parityEngine.verifyParity(
-  profile,
-  result.permissionSets.map((ps) => ps.metadata)
-);
-
+const parity = parityEngine.verifyParity(profiles[0], [
+  result.baselinePermissionSet.metadata,
+  ...result.profileDeltas[0].deltaPermissionSets.map((d) => d.metadata),
+]);
 console.log(`Parity match: ${parity.is100PercentMatch} (${parity.parityScore}%)`);
 ```
 
@@ -321,14 +408,17 @@ console.log(`Parity match: ${parity.is100PercentMatch} (${parity.parityScore}%)`
 
 ## 🧪 Testing
 
-PermForge maintains a 100% passing test suite:
+PermForge maintains a 100% passing test suite across all modules and end-to-end integration workflows:
 
 ```bash
-# Run unit tests with Vitest
+# Run unit & integration tests with Vitest
 npm test
 
 # Run type check
 npm run lint
+
+# Format code with Prettier
+npm run format
 
 # Clean and build
 npm run build
@@ -338,16 +428,18 @@ npm run build
 
 ## 🤝 Contributing
 
-Contributions from the Salesforce community are welcome!
+Contributions from the Salesforce community are warmly welcomed!
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+5. Open a Pull Request using our [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
+
+See our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) for full details.
 
 ---
 
 ## 📄 License
 
-Distributed under the **MIT License**. See [LICENSE](file:///Users/vishalparashar/Documents/antigravity/friendly-bohr/LICENSE) for details.
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for details.

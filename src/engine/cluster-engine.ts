@@ -10,6 +10,7 @@ import {
   UserPermission,
   ClassAccess,
   TabSetting,
+  CustomPermission,
 } from '../types/metadata.js';
 import {
   ClusterOptions,
@@ -49,6 +50,7 @@ export class ClusterEngine {
     const userPermFreq = new Map<string, number>();
     const classFreq = new Map<string, number>();
     const tabFreq = new Map<string, number>();
+    const customPermFreq = new Map<string, number>();
 
     for (const p of profiles) {
       const meta = p.metadata;
@@ -102,6 +104,13 @@ export class ClusterEngine {
       for (const t of meta.tabVisibilities || []) {
         if (t.visibility === 'DefaultOn' || t.visibility === 'DefaultOff') {
           tabFreq.set(t.tab, (tabFreq.get(t.tab) || 0) + 1);
+        }
+      }
+
+      // Custom permissions
+      for (const cp of meta.customPermissions || []) {
+        if (cp.enabled) {
+          customPermFreq.set(cp.name, (customPermFreq.get(cp.name) || 0) + 1);
         }
       }
     }
@@ -170,6 +179,13 @@ export class ClusterEngine {
       }
     }
 
+    const baselineCustomPerms: CustomPermission[] = [];
+    for (const [cpName, count] of customPermFreq.entries()) {
+      if (count >= minCount) {
+        baselineCustomPerms.push({ name: cpName, enabled: true });
+      }
+    }
+
     const baselineMeta: PermissionSetMetadata = {
       label: this.formatLabel(baseName),
       description: `Baseline permissions shared across ${minCount}/${totalProfiles} profiles (${Math.round(
@@ -180,6 +196,7 @@ export class ClusterEngine {
       fieldPermissions: baselineFields.length > 0 ? baselineFields : undefined,
       userPermissions: baselineUserPerms.length > 0 ? baselineUserPerms : undefined,
       classAccesses: baselineClasses.length > 0 ? baselineClasses : undefined,
+      customPermissions: baselineCustomPerms.length > 0 ? baselineCustomPerms : undefined,
       tabSettings: baselineTabs.length > 0 ? baselineTabs : undefined,
     };
 
@@ -195,6 +212,7 @@ export class ClusterEngine {
     const baseFieldMap = new Map(baselineFields.map((f) => [f.field, f]));
     const baseUserSet = new Set(baselineUserPerms.map((u) => u.name));
     const baseClassSet = new Set(baselineClasses.map((c) => c.apexClass));
+    const baseCustomSet = new Set(baselineCustomPerms.map((cp) => cp.name));
 
     // 3. For each profile, calculate delta and generate Delta Permission Sets
     const profileDeltas: ProfileDelta[] = [];
@@ -259,6 +277,14 @@ export class ClusterEngine {
         }
       }
 
+      // Custom permission deltas
+      const deltaCustomPerms: CustomPermission[] = [];
+      for (const cp of meta.customPermissions || []) {
+        if (cp.enabled && !baseCustomSet.has(cp.name)) {
+          deltaCustomPerms.push(cp);
+        }
+      }
+
       const generatedDeltas: GeneratedPermissionSet[] = [];
 
       // Create Delta Object/Field Permission Set if any
@@ -307,6 +333,22 @@ export class ClusterEngine {
             classAccesses: deltaClasses,
           },
           category: 'apex',
+        });
+      }
+
+      // Create Delta Custom Permissions Set if any
+      if (deltaCustomPerms.length > 0) {
+        const apiName = `${p.name}_Delta_Custom_Permissions`;
+        generatedDeltas.push({
+          apiName,
+          fileName: `${apiName}.permissionset-meta.xml`,
+          metadata: {
+            label: `${this.formatLabel(p.name)} - Delta Custom Permissions`,
+            description: `Unique custom permissions for ${p.name} on top of ${baseName}.`,
+            hasActivationRequired: false,
+            customPermissions: deltaCustomPerms,
+          },
+          category: 'custom',
         });
       }
 
