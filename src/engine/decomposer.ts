@@ -96,8 +96,10 @@ export class ProfileDecomposer {
       };
     }
 
-    // Write outputs to target directories
-    await this.writeOutputs(options.outputDir, generatedPermSets, psg);
+    // Write outputs to target directories if outputDir is specified
+    if (options.outputDir) {
+      await this.writeOutputs(options.outputDir, generatedPermSets, psg);
+    }
 
     // Compute stats
     let totalObjectsCovered = 0;

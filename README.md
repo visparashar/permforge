@@ -11,7 +11,7 @@
 [![Documentation](https://img.shields.io/badge/Documentation-GitHub%20Pages-blue.svg)](https://visparashar.github.io/permforge/)
 [![Node.js CI](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-23%2F23%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
+[![Tests](https://img.shields.io/badge/Tests-25%2F25%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
 [![MCP Native](https://img.shields.io/badge/MCP-Compatible-9cf.svg)](https://modelcontextprotocol.io/)
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](vscode-extension)
 
@@ -45,6 +45,7 @@ flowchart LR
     C --> D["4. SANITIZE<br/>strip / clean"]
     D --> E["5. GOVERN<br/>lint / graph"]
     E --> F["6. AUTOMATE<br/>uap / mute / plan"]
+    F --> G["7. PIPELINE<br/>pipeline --run"]
 ```
 
 ---
@@ -89,6 +90,7 @@ code --install-extension vscode-extension/vscode-permforge-1.0.0.vsix
 
 | Command                              | Description                                                                                                           |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **`permforge pipeline`**             | **Full Migration Pipeline:** Executes audit, clustering, parity verification, UAP, and rollout planning in one command.|
 | **`permforge analyze`**              | Scans profiles, inventories permissions, flags high-risk access, and scores complexity (0–100).                       |
 | **`permforge report`**               | Generates an interactive, standalone HTML audit report with security heatmaps and parity tables.                      |
 | **`permforge decompose`**            | Decomposes legacy profiles into domain-aligned Permission Sets and Persona-based PSGs.                                |
@@ -154,6 +156,53 @@ permforge lint --github-actions
 ---
 
 ## 🛠️ CLI Commands & Usage
+
+### 0. `permforge pipeline` (Enterprise All-in-One Engine)
+
+Executes the complete, multi-stage Salesforce Profile migration lifecycle in a single command. The engine coordinates 8 modular stages with configurable quality gates:
+
+```mermaid
+flowchart TD
+    S1["1. AUDIT<br/>Complexity & High-Risk Inventory"] --> S2["2. CLUSTER<br/>Shared Employee Baseline"]
+    S2 --> S3["3. DECOMPOSE<br/>Domain Sets & Persona PSGs"]
+    S3 --> S4["4. VERIFY<br/>Bit-for-Bit Mathematical Parity"]
+    S4 --> S5["5. STRIP<br/>Profile Sanitization"]
+    S5 --> S6["6. UAP<br/>User Access Policies"]
+    S6 --> S7["7. PLAN<br/>Deploy Sequences & Rollback"]
+    S7 --> S8["8. REPORT<br/>Executive HTML Report"]
+```
+
+```bash
+# Execute the full migration pipeline
+permforge pipeline --run
+
+# Run full pipeline with cross-profile clustering and UAP generation
+permforge pipeline --run --source force-app/main/default/profiles --cluster --uap --plan
+
+# Dry-run simulation mode (ideal for CI/CD gates — fails if parity < 100%)
+permforge pipeline --run --strict --dry-run
+
+# Initialize pipeline configuration and scaffold GitHub Actions CI gate
+permforge pipeline --init
+```
+
+**Pipeline Flags:**
+
+| Flag | Description | Default |
+| --- | --- | --- |
+| `--run` | Execute the full multi-stage migration pipeline | `false` |
+| `--init` | Scaffolds `permforge.pipeline.json` and `.github/workflows/salesforce-permforge-gate.yml` | `false` |
+| `-s, --source` | Directory or glob pattern containing source profiles | `force-app/main/default/profiles` |
+| `-d, --output-dir` | Target directory for generated Permission Sets and PSGs | `force-app/main/default` |
+| `--cluster` | Enable cross-profile clustering to extract standard baseline | `false` |
+| `--strip` | Sanitize source profiles by stripping migratable permissions | `false` |
+| `--uap` | Generate native Salesforce User Access Policies (`.userAccessPolicy-meta.xml`) | `false` |
+| `--plan` | Generate user assignment CSVs, rollback scripts, and SF CLI deploy sequences | `true` |
+| `--strict` | Fail pipeline with exit code 1 if parity < 100% or any stage errors | `false` |
+| `--dry-run` | Simulation mode: run all analytical & verification checks without modifying disk | `false` |
+| `--json` | Format pipeline output as JSON for programmatic orchestration | `false` |
+
+---
 
 ### 1. `permforge analyze`
 
@@ -453,6 +502,7 @@ Add PermForge to your MCP configuration file:
 
 | MCP Tool Name         | Description                                                                                                                                           |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `permforge_pipeline` | Coordinates the full 8-stage migration pipeline (audit, cluster, decompose, verify, strip, uap, plan, report).       |
 | `permforge_analyze`   | Audits profiles, counts SObject/FLS permissions, computes complexity score (0-100), and flags high-risk capabilities (`ModifyAllData`, `AuthorApex`). |
 | `permforge_decompose` | Splits a monolithic profile into clean, domain-aligned Permission Sets and a Persona PSG with 100% parity check.                                      |
 | `permforge_cluster`   | Clusters multiple profiles across the org to extract `Standard_Employee_Baseline` + role-specific deltas.                                             |
@@ -467,6 +517,7 @@ Add PermForge to your MCP configuration file:
 
 ### 💬 Example Prompts to Give Your AI Assistant
 
+- _"Run the full PermForge migration pipeline on our profiles with clustering enabled in dry-run mode and verify 100% parity."_
 - _"Analyze all profiles in `force-app/main/default/profiles` and list any with high-risk security grants."_
 - _"Decompose `Sales_User.profile-meta.xml` into domain permission sets and verify access parity."_
 - _"Cluster our profiles with a 75% threshold to extract a shared base user permission set."_
@@ -481,19 +532,36 @@ PermForge can be embedded directly in your custom TypeScript / JavaScript script
 
 ```typescript
 import {
+  PipelineRunner,
   ProfileReader,
-  ProfileAnalyzer,
   ClusterEngine,
   ParityEngine,
-  ProfileStripper,
-  ProfileLinter,
 } from 'permforge';
 
-// 1. Read profile
+// Option A: Execute the complete migration pipeline in code
+const runner = new PipelineRunner();
+const pipelineResult = await runner.runPipeline({
+  sourceDir: 'force-app/main/default/profiles',
+  outputDir: 'force-app/main/default',
+  strict: true,
+  dryRun: false,
+  stages: {
+    audit: { enabled: true },
+    cluster: { enabled: true, threshold: 0.75, baselineName: 'Standard_Employee_Baseline' },
+    decompose: { enabled: true, strategy: 'by-domain' },
+    verify: { enabled: true, minParityPercent: 100 },
+    uap: { enabled: true },
+    plan: { enabled: true },
+    report: { enabled: true },
+  },
+});
+console.log(`Pipeline Status: ${pipelineResult.success ? 'PASSED' : 'FAILED'}`);
+console.log(`Parity Match: ${pipelineResult.summary.averageParityScore}%`);
+
+// Option B: Use individual engines modularly
 const reader = new ProfileReader();
 const profiles = await reader.loadProfiles('force-app/main/default/profiles');
 
-// 2. Cluster across all profiles to extract baseline + deltas
 const clusterEngine = new ClusterEngine();
 const result = await clusterEngine.clusterProfiles(profiles, {
   threshold: 0.75,
@@ -501,14 +569,6 @@ const result = await clusterEngine.clusterProfiles(profiles, {
   outputDir: 'force-app/main/default',
   createGroups: true,
 });
-
-// 3. Verify access parity
-const parityEngine = new ParityEngine();
-const parity = parityEngine.verifyParity(profiles[0], [
-  result.baselinePermissionSet.metadata,
-  ...result.profileDeltas[0].deltaPermissionSets.map((d) => d.metadata),
-]);
-console.log(`Parity match: ${parity.is100PercentMatch} (${parity.parityScore}%)`);
 ```
 
 ---

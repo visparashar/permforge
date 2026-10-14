@@ -593,7 +593,7 @@
             <span class="section-tag">Command Line Interface</span>
             <h2 class="section-title">Complete CLI Reference</h2>
             <p class="section-subtitle">
-              13 purpose-built commands covering discovery, decomposition, verification, and
+              14 purpose-built commands covering discovery, decomposition, verification, and
               automated assignment.
             </p>
           </div>
@@ -622,6 +622,37 @@
           </div>
 
           <div class="cli-grid" id="cliGrid">
+            <!-- 0: pipeline -->
+            <div class="cli-card" data-name="pipeline" data-tag="migration validation agent">
+              <div class="cli-head">
+                <span class="cli-name">permforge pipeline</span>
+                <span class="cli-badge" style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd;">Enterprise Pipeline</span>
+              </div>
+              <p class="cli-desc">
+                Multi-stage orchestration engine coordinating audit, clustering, domain decomposition, mathematical parity verification, UAP generation, and reporting in a single command.
+              </p>
+              <div class="cli-snippet">
+                <code>permforge pipeline --run --cluster --strict --dry-run</code>
+                <button
+                  class="copy-btn-sm"
+                  data-copy="permforge pipeline --run --cluster --strict --dry-run"
+                  title="Copy"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <!-- 1: analyze -->
             <div class="cli-card" data-name="analyze" data-tag="audit">
               <div class="cli-head">
@@ -1057,11 +1088,12 @@
                   style="color: #38bdf8"
                   >Model Context Protocol (MCP)</a
                 >
-                standard. When running in your IDE or desktop AI client, agents have 9 native tools
+                standard. When running in your IDE or desktop AI client, agents have 10 native tools
                 to inspect, plan, decompose, and verify changes safely.
               </p>
 
               <div class="mcp-tools-list">
+                <div class="mcp-tool-pill" style="border-color: #8b5cf6; color: #c4b5fd;"><span>&#9656;</span> permforge_pipeline</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> analyze_profiles</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> cluster_profiles</div>
                 <div class="mcp-tool-pill"><span>&#9656;</span> decompose_profile</div>

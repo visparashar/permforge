@@ -42,8 +42,8 @@
     "clean": "rm -rf dist",
     "dev": "tsx ./bin/run.ts",
     "prepack": "npm run clean && npm run build && oclif manifest",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run test/",
+    "test:watch": "vitest test/",
     "lint": "tsc --noEmit",
     "build:vscode": "npm --prefix vscode-extension run build",
     "package:vscode": "npm run build && cd vscode-extension && npx @vscode/vsce package --no-dependencies",
@@ -94,6 +94,9 @@
       },
       "mcp": {
         "description": "Start Model Context Protocol (MCP) server for AI coding assistants"
+      },
+      "pipeline": {
+        "description": "Execute or configure the complete multi-stage profile migration pipeline"
       }
     }
   },

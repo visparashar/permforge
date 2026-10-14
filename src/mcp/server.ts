@@ -18,6 +18,7 @@ import { ProfileLinter } from '../engine/profile-linter.js';
 import { UapBuilder } from '../engine/uap-builder.js';
 import { MuteBuilder } from '../engine/mute-builder.js';
 import { GraphBuilder } from '../engine/graph-builder.js';
+import { PipelineRunner } from '../engine/pipeline-runner.js';
 import { XmlEngine } from '../parser/xml-engine.js';
 import { DecompositionStrategy } from '../types/decomposition.js';
 
@@ -235,6 +236,41 @@ const TOOLS: Tool[] = [
       },
     },
   },
+  {
+    name: 'permforge_pipeline',
+    description:
+      'Execute the complete multi-stage profile migration pipeline: audit, cross-profile clustering, modular decomposition, mathematical parity proof, sanitization, User Access Policy (UAP) generation, and migration runbook rollout planning.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          description:
+            'Path to profiles directory or glob pattern (defaults to force-app/main/default/profiles)',
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Destination directory (defaults to force-app/main/default)',
+        },
+        cluster: {
+          type: 'boolean',
+          description: 'Enable cross-profile clustering to extract shared Standard Employee Baseline',
+        },
+        strip: {
+          type: 'boolean',
+          description: 'Sanitize source profiles by stripping migratable permissions',
+        },
+        strict: {
+          type: 'boolean',
+          description: 'Fail pipeline if parity < 100% or any stage fails',
+        },
+        dryRun: {
+          type: 'boolean',
+          description: 'Simulate without modifying files on disk',
+        },
+      },
+    },
+  },
 ];
 
 export function createMcpServer(): Server {
@@ -261,6 +297,7 @@ export function createMcpServer(): Server {
   const uapBuilder = new UapBuilder();
   const muteBuilder = new MuteBuilder();
   const graphBuilder = new GraphBuilder(xmlEngine);
+  const pipelineRunner = new PipelineRunner();
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOLS };
@@ -464,6 +501,36 @@ export function createMcpServer(): Server {
 
           return {
             content: [{ type: 'text', text }],
+          };
+        }
+
+        case 'permforge_pipeline': {
+          const source = (args.source as string) || 'force-app/main/default/profiles';
+          const outputDir = (args.outputDir as string) || 'force-app/main/default';
+          const cluster = Boolean(args.cluster);
+          const strip = Boolean(args.strip);
+          const strict = Boolean(args.strict);
+          const dryRun = Boolean(args.dryRun);
+
+          const result = await pipelineRunner.runPipeline({
+            sourceDir: source,
+            outputDir,
+            strict,
+            dryRun,
+            stages: {
+              audit: { enabled: true },
+              cluster: { enabled: cluster, threshold: 0.75, baselineName: 'Standard_Employee_Baseline' },
+              decompose: { enabled: true, strategy: 'by-domain' },
+              verify: { enabled: true, minParityPercent: 100 },
+              strip: { enabled: strip, inPlace: false },
+              uap: { enabled: true },
+              plan: { enabled: true },
+              report: { enabled: true },
+            },
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
           };
         }
 

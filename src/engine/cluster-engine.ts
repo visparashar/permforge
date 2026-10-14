@@ -386,8 +386,10 @@ export class ClusterEngine {
       });
     }
 
-    // Write all artifacts to target directories
-    await this.writeClusteredOutputs(options.outputDir, baselinePermSet, profileDeltas);
+    // Write all artifacts to target directories if outputDir provided
+    if (options.outputDir) {
+      await this.writeClusteredOutputs(options.outputDir, baselinePermSet, profileDeltas);
+    }
 
     return {
       totalProfilesAnalyzed: totalProfiles,

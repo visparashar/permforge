@@ -1,0 +1,53 @@
+name: Salesforce Profile Governance & Parity Gate
+
+# This reusable GitHub Actions workflow enforces zero profile tech debt and
+# mathematically verifies Permission Set parity before merging changes to main.
+# Drop this file into your Salesforce DX repository at .github/workflows/salesforce-permforge-gate.yml
+
+on:
+  pull_request:
+    paths:
+      - '**/*.profile-meta.xml'
+      - '**/*.profile'
+      - '**/*.permissionset-meta.xml'
+      - '**/*.permissionsetgroup-meta.xml'
+  workflow_dispatch:
+
+jobs:
+  permforge-governance:
+    name: PermForge Parity & Security Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Profile Security & Best Practice Linting
+        run: npx --yes permforge lint --source force-app/main/default/profiles --strict
+
+      - name: Parity & Pipeline Simulation (Dry Run)
+        run: |
+          npx --yes permforge pipeline \
+            --run \
+            --source force-app/main/default/profiles \
+            --output-dir force-app/main/default \
+            --cluster \
+            --uap \
+            --plan \
+            --strict \
+            --dry-run
+
+      - name: Upload Migration Report (if generated)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: permforge-migration-audit
+          path: |
+            permforge-migration-report.html
+            permforge-report.html
+          if-no-files-found: ignore

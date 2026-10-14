@@ -403,6 +403,105 @@
         "mute.js"
       ]
     },
+    "pipeline": {
+      "aliases": [],
+      "args": {},
+      "description": "Execute or configure the complete multi-stage Salesforce Profile Migration Pipeline",
+      "examples": [
+        "<%= config.bin %> pipeline --run",
+        "<%= config.bin %> pipeline --run --source force-app/main/default/profiles --cluster",
+        "<%= config.bin %> pipeline --run --strict --dry-run",
+        "<%= config.bin %> pipeline --init"
+      ],
+      "flags": {
+        "run": {
+          "description": "Execute the complete multi-stage profile migration pipeline",
+          "name": "run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "init": {
+          "description": "Scaffold a starter permforge.pipeline.json and GitHub Actions CI workflow",
+          "name": "init",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "source": {
+          "char": "s",
+          "description": "Path to profiles directory or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated permission sets and groups",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "cluster": {
+          "description": "Enable cross-profile clustering to extract shared Standard Employee Baseline",
+          "name": "cluster",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "strip": {
+          "description": "Sanitize source profiles by stripping migratable permissions",
+          "name": "strip",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "uap": {
+          "description": "Generate native Salesforce User Access Policies (.userAccessPolicy-meta.xml)",
+          "name": "uap",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "plan": {
+          "description": "Generate user assignment CSVs, rollback scripts, and deploy sequences",
+          "name": "plan",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "strict": {
+          "description": "Strict mode: fail pipeline and exit with error if parity < 100% or any stage fails",
+          "name": "strict",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Simulate pipeline without writing files to disk",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "pipeline",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "pipeline.js"
+      ]
+    },
     "plan": {
       "aliases": [],
       "args": {},

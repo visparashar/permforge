@@ -90,7 +90,7 @@ export interface ParityReport {
 export interface ClusterOptions {
   threshold?: number; // e.g. 0.75 for 75%
   baselineName?: string;
-  outputDir: string;
+  outputDir?: string;
   createGroups?: boolean;
 }
 

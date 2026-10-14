@@ -1,4 +1,4 @@
-name: CI
+name: PermForge CI/CD Engine
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [main, master]
 
 jobs:
-  build-and-test:
+  quality-and-test:
+    name: Test & Lint (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
 
     strategy:
@@ -15,22 +16,108 @@ jobs:
         node-version: [18.x, 20.x, 22.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Type check
+      - name: TypeScript Lint & Typecheck
         run: npm run lint
 
-      - name: Build
+      - name: Build Core Engine
         run: npm run build
 
-      - name: Run Tests
+      - name: Run Test Suite
         run: npm test
+
+  vscode-extension:
+    name: Package VS Code Extension (.vsix)
+    runs-on: ubuntu-latest
+    needs: quality-and-test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Build Core Engine
+        run: npm run build
+
+      - name: Install Extension Dependencies
+        run: cd vscode-extension && npm install
+
+      - name: Build Extension Webview & Backend
+        run: npm --prefix vscode-extension run build
+
+      - name: Package VSIX
+        run: npm run package:vscode
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: permforge-vscode-extension
+          path: vscode-extension/*.vsix
+          if-no-files-found: error
+
+  pipeline-simulation:
+    name: Dogfood End-to-End Migration Pipeline
+    runs-on: ubuntu-latest
+    needs: quality-and-test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install Dependencies & Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run Full Pipeline Simulation (--strict --dry-run)
+        run: |
+          node ./bin/run.js pipeline \
+            --run \
+            --source test/fixtures/profiles \
+            --cluster \
+            --uap \
+            --plan \
+            --strict \
+            --dry-run
+
+  security-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
