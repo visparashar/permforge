@@ -214,6 +214,73 @@ permforge wizard
 
 ---
 
+### 8. `permforge strip` (or `clean`)
+
+Sanitizes legacy profiles by removing all deprecated permissions (Object, Field FLS, User Perms, Apex classes) while preserving necessary layout assignments, default record types, and login settings.
+
+```bash
+# Strip permissions in-place with automatic .bak backup
+permforge strip --source force-app/main/default/profiles --in-place
+
+# Output sanitized profiles to a separate directory
+permforge strip --source force-app/main/default/profiles --output-dir force-app/main/default/clean-profiles
+```
+
+---
+
+### 9. `permforge uap`
+
+Generates native Salesforce **User Access Policy (UAP)** metadata (`.userAccessPolicy-meta.xml`) to automate continuous, zero-touch user provisioning when users are created or updated.
+
+```bash
+# Auto-assign PSG when User.Department is Sales
+permforge uap \
+  --name Sales_User_Auto_Assign \
+  --group Sales_User_PSG \
+  --criteria "Department=Sales,UserType=Standard"
+```
+
+---
+
+### 10. `permforge mute`
+
+Generates a **Muting Permission Set** (`.mutingpermissionset-meta.xml`) targeting a Permission Set Group to selectively restrict sensitive actions (e.g. Delete) for junior or contractor roles without cloning permission set groups.
+
+```bash
+# Mute Delete on Account and Opportunity in a PSG
+permforge mute --name Sales_Junior_Mute --mute-delete Account,Opportunity
+```
+
+---
+
+### 11. `permforge lint`
+
+CI/CD pre-commit and Pull Request scanner that verifies zero deprecated permissions remain in `.profile-meta.xml` files. Emits GitHub Actions annotations and fails builds on violations.
+
+```bash
+# Lint profiles in CI pipeline
+permforge lint
+
+# Enable GitHub Actions workflow annotations
+permforge lint --github-actions
+```
+
+---
+
+### 12. `permforge graph`
+
+Visualizes your permission architecture hierarchy and dependencies (PSG -> Permission Sets -> SObjects) as an ASCII terminal tree or exportable Mermaid diagram.
+
+```bash
+# Print ASCII dependency tree to terminal
+permforge graph
+
+# Export Mermaid diagram for documentation
+permforge graph --format markdown --output PERMISSION_GRAPH.md
+```
+
+---
+
 ## 💻 Programmatic API Usage
 
 PermForge can be embedded directly in your custom TypeScript / JavaScript scripts, CI/CD pipelines, or GitHub Actions:

@@ -8,3 +8,8 @@ export * from './engine/parity-engine.js';
 export * from './engine/rollout-planner.js';
 export * from './engine/cluster-engine.js';
 export * from './engine/html-reporter.js';
+export * from './engine/profile-stripper.js';
+export * from './engine/uap-builder.js';
+export * from './engine/mute-builder.js';
+export * from './engine/profile-linter.js';
+export * from './engine/graph-builder.js';

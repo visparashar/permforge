@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-10-14
+
+### Added
+
+- **`permforge strip` / `clean` command**: Sanitizes profiles by stripping deprecated permissions while safely preserving layout assignments, default record types, login hours, and credentials.
+- **`permforge uap` command**: Generates native Salesforce User Access Policy (UAP) metadata (`.userAccessPolicy-meta.xml`) for zero-touch user provisioning.
+- **`permforge mute` command**: Generates Muting Permission Sets (`.mutingpermissionset-meta.xml`) targeting Permission Set Groups to selectively restrict actions (e.g. Delete).
+- **`permforge lint` command**: CI/CD pre-commit and Pull Request scanner with GitHub Actions annotations to enforce the zero-profile-permissions standard.
+- **`permforge graph` command**: Interactive dependency graph generator (Mermaid diagram and ASCII tree) visualizing PSG -> Permission Sets -> SObjects.
+- **`permforge cluster` command**: Cross-profile clustering engine extracting a shared `Standard_Employee_Baseline` across multiple profiles.
+- **`permforge report` command**: Interactive self-contained HTML audit dashboard with security heatmaps and access parity matrix.
+- **`permforge wizard` command**: Guided terminal wizard with interactive prompts for all migration workflows.
+- Expanded test suite to 19 unit tests with 100% pass rate.
+
+---
+
 ## [1.0.0] - 2026-10-14
 
 ### Added

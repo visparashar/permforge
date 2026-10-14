@@ -195,6 +195,86 @@ export class XmlEngine {
     return `<?xml version="1.0" encoding="UTF-8"?>\n${xml}\n`;
   }
 
+  /**
+   * Serialize a ProfileMetadata object back to standard Salesforce XML.
+   */
+  public serializeProfile(profile: ProfileMetadata): string {
+    const sortedObj: Record<string, unknown> = {
+      '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+    };
+
+    if (profile.applicationVisibilities && profile.applicationVisibilities.length > 0) {
+      sortedObj.applicationVisibilities = [...profile.applicationVisibilities].sort((a, b) =>
+        a.application.localeCompare(b.application)
+      );
+    }
+
+    if (profile.classAccesses && profile.classAccesses.length > 0) {
+      sortedObj.classAccesses = [...profile.classAccesses].sort((a, b) =>
+        a.apexClass.localeCompare(b.apexClass)
+      );
+    }
+
+    sortedObj.custom = profile.custom ?? true;
+    if (profile.customPermissions && profile.customPermissions.length > 0) {
+      sortedObj.customPermissions = [...profile.customPermissions].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+    }
+
+    if (profile.description) sortedObj.description = profile.description;
+
+    if (profile.fieldPermissions && profile.fieldPermissions.length > 0) {
+      sortedObj.fieldPermissions = [...profile.fieldPermissions].sort((a, b) =>
+        a.field.localeCompare(b.field)
+      );
+    }
+
+    if (profile.layoutAssignments && profile.layoutAssignments.length > 0) {
+      sortedObj.layoutAssignments = profile.layoutAssignments;
+    }
+
+    if (profile.loginHours) sortedObj.loginHours = profile.loginHours;
+    if (profile.loginIpRanges && profile.loginIpRanges.length > 0) {
+      sortedObj.loginIpRanges = profile.loginIpRanges;
+    }
+
+    if (profile.objectPermissions && profile.objectPermissions.length > 0) {
+      sortedObj.objectPermissions = [...profile.objectPermissions].sort((a, b) =>
+        a.object.localeCompare(b.object)
+      );
+    }
+
+    if (profile.pageAccesses && profile.pageAccesses.length > 0) {
+      sortedObj.pageAccesses = [...profile.pageAccesses].sort((a, b) =>
+        a.apexPage.localeCompare(b.apexPage)
+      );
+    }
+
+    if (profile.recordTypeVisibilities && profile.recordTypeVisibilities.length > 0) {
+      sortedObj.recordTypeVisibilities = [...profile.recordTypeVisibilities].sort((a, b) =>
+        a.recordType.localeCompare(b.recordType)
+      );
+    }
+
+    if (profile.tabVisibilities && profile.tabVisibilities.length > 0) {
+      sortedObj.tabVisibilities = [...profile.tabVisibilities].sort((a, b) =>
+        a.tab.localeCompare(b.tab)
+      );
+    }
+
+    if (profile.userLicense) sortedObj.userLicense = profile.userLicense;
+
+    if (profile.userPermissions && profile.userPermissions.length > 0) {
+      sortedObj.userPermissions = [...profile.userPermissions].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+    }
+
+    const xml = this.builder.build({ Profile: sortedObj });
+    return `<?xml version="1.0" encoding="UTF-8"?>\n${xml}\n`;
+  }
+
   private normalizeProfile(raw: Record<string, any>): ProfileMetadata {
     return {
       custom: raw.custom === true || raw.custom === 'true',
