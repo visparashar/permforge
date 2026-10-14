@@ -13,8 +13,20 @@ describe('ProfileAnalyzer', () => {
         custom: true,
         userLicense: 'Salesforce',
         objectPermissions: [
-          { object: 'Account', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
-          { object: 'Contact', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
+          {
+            object: 'Account',
+            allowCreate: true,
+            allowRead: true,
+            allowEdit: true,
+            allowDelete: false,
+          },
+          {
+            object: 'Contact',
+            allowCreate: true,
+            allowRead: true,
+            allowEdit: true,
+            allowDelete: false,
+          },
         ],
         fieldPermissions: [
           { field: 'Account.AnnualRevenue', readable: true, editable: true },
@@ -49,7 +61,14 @@ describe('ProfileAnalyzer', () => {
           { name: 'AuthorApex', enabled: true },
         ],
         objectPermissions: [
-          { object: 'Case', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: true, modifyAllRecords: true },
+          {
+            object: 'Case',
+            allowCreate: true,
+            allowRead: true,
+            allowEdit: true,
+            allowDelete: true,
+            modifyAllRecords: true,
+          },
         ],
       },
     };

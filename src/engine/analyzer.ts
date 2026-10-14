@@ -35,7 +35,13 @@ export class ProfileAnalyzer {
     // Filter enabled items
     const enabledUserPerms = userPermissions.filter((p) => p.enabled);
     const activeObjectPerms = objectPermissions.filter(
-      (o) => o.allowCreate || o.allowRead || o.allowEdit || o.allowDelete || o.viewAllRecords || o.modifyAllRecords
+      (o) =>
+        o.allowCreate ||
+        o.allowRead ||
+        o.allowEdit ||
+        o.allowDelete ||
+        o.viewAllRecords ||
+        o.modifyAllRecords
     );
     const activeFieldPerms = fieldPermissions.filter((f) => f.readable || f.editable);
     const enabledClassAccesses = classAccesses.filter((c) => c.enabled);

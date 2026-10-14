@@ -11,15 +11,19 @@ describe('ParityEngine', () => {
     filePath: '/dummy/Sales_Profile.profile-meta.xml',
     metadata: {
       objectPermissions: [
-        { object: 'Account', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
+        {
+          object: 'Account',
+          allowCreate: true,
+          allowRead: true,
+          allowEdit: true,
+          allowDelete: false,
+        },
       ],
       fieldPermissions: [
         { field: 'Account.Name', readable: true, editable: true },
         { field: 'Account.AnnualRevenue', readable: true, editable: false },
       ],
-      userPermissions: [
-        { name: 'ApiEnabled', enabled: true },
-      ],
+      userPermissions: [{ name: 'ApiEnabled', enabled: true }],
     },
   };
 
@@ -28,7 +32,13 @@ describe('ParityEngine', () => {
       {
         label: 'Account Access',
         objectPermissions: [
-          { object: 'Account', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
+          {
+            object: 'Account',
+            allowCreate: true,
+            allowRead: true,
+            allowEdit: true,
+            allowDelete: false,
+          },
         ],
         fieldPermissions: [
           { field: 'Account.Name', readable: true, editable: true },
@@ -37,9 +47,7 @@ describe('ParityEngine', () => {
       },
       {
         label: 'System Access',
-        userPermissions: [
-          { name: 'ApiEnabled', enabled: true },
-        ],
+        userPermissions: [{ name: 'ApiEnabled', enabled: true }],
       },
     ];
 
@@ -59,7 +67,13 @@ describe('ParityEngine', () => {
       {
         label: 'Incomplete Account Access',
         objectPermissions: [
-          { object: 'Account', allowCreate: true, allowRead: true, allowEdit: false, allowDelete: false },
+          {
+            object: 'Account',
+            allowCreate: true,
+            allowRead: true,
+            allowEdit: false,
+            allowDelete: false,
+          },
         ],
         fieldPermissions: [
           { field: 'Account.Name', readable: true, editable: false },

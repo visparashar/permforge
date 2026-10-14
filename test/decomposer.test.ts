@@ -23,8 +23,20 @@ describe('ProfileDecomposer', () => {
       custom: true,
       userLicense: 'Salesforce',
       objectPermissions: [
-        { object: 'Account', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
-        { object: 'Opportunity', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
+        {
+          object: 'Account',
+          allowCreate: true,
+          allowRead: true,
+          allowEdit: true,
+          allowDelete: false,
+        },
+        {
+          object: 'Opportunity',
+          allowCreate: true,
+          allowRead: true,
+          allowEdit: true,
+          allowDelete: false,
+        },
       ],
       fieldPermissions: [
         { field: 'Account.AnnualRevenue', readable: true, editable: true },

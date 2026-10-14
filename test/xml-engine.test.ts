@@ -48,8 +48,20 @@ describe('XmlEngine', () => {
       description: 'Test description',
       hasActivationRequired: false,
       objectPermissions: [
-        { object: 'Opportunity', allowCreate: true, allowRead: true, allowEdit: true, allowDelete: false },
-        { object: 'Account', allowCreate: true, allowRead: true, allowEdit: false, allowDelete: false },
+        {
+          object: 'Opportunity',
+          allowCreate: true,
+          allowRead: true,
+          allowEdit: true,
+          allowDelete: false,
+        },
+        {
+          object: 'Account',
+          allowCreate: true,
+          allowRead: true,
+          allowEdit: false,
+          allowDelete: false,
+        },
       ],
       fieldPermissions: [
         { field: 'Opportunity.Amount', readable: true, editable: true },

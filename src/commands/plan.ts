@@ -44,7 +44,9 @@ export default class Plan extends Command {
 
     const planner = new RolloutPlanner();
 
-    this.log(pc.bold(pc.cyan(`\n📋 Generating Rollout & Migration Plan for ${flags.profile}...\n`)));
+    this.log(
+      pc.bold(pc.cyan(`\n📋 Generating Rollout & Migration Plan for ${flags.profile}...\n`))
+    );
 
     const result = await planner.generatePlan({
       profileName: flags.profile,
@@ -72,6 +74,10 @@ export default class Plan extends Command {
 
     this.log(table.toString());
     this.log(pc.bold(pc.green('\n✔ Rollout package created successfully!')));
-    this.log(pc.dim('Review the generated markdown guide before applying changes to sandbox or production.\n'));
+    this.log(
+      pc.dim(
+        'Review the generated markdown guide before applying changes to sandbox or production.\n'
+      )
+    );
   }
 }

@@ -68,8 +68,8 @@ export default class Analyze extends Command {
         a.complexityScore > 60
           ? pc.red(`${a.complexityScore}/100 (High)`)
           : a.complexityScore > 30
-          ? pc.yellow(`${a.complexityScore}/100 (Med)`)
-          : pc.green(`${a.complexityScore}/100 (Low)`);
+            ? pc.yellow(`${a.complexityScore}/100 (Med)`)
+            : pc.green(`${a.complexityScore}/100 (Low)`);
 
       const highRiskDisplay =
         a.highRiskPermissions.length > 0

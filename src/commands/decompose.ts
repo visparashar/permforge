@@ -78,7 +78,11 @@ export default class Decompose extends Command {
 
       // Run automatic parity check
       const targetPermSets = result.permissionSets.map((ps) => ps.metadata);
-      const parity = parityEngine.verifyParity(profile, targetPermSets, result.permissionSetGroup?.apiName);
+      const parity = parityEngine.verifyParity(
+        profile,
+        targetPermSets,
+        result.permissionSetGroup?.apiName
+      );
 
       allResults.push({
         ...result,

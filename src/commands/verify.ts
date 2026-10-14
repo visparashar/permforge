@@ -94,13 +94,31 @@ export default class Verify extends Command {
     });
 
     summaryTable.push(
-      ['Object CRUD & Admin', report.summary.objectsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'), ''],
-      ['Field-Level Security (FLS)', report.summary.fieldsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'), ''],
-      ['System User Permissions', report.summary.userPermissionsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'), ''],
-      ['Apex & VF Access', report.summary.apexMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'), ''],
+      [
+        'Object CRUD & Admin',
+        report.summary.objectsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'),
+        '',
+      ],
+      [
+        'Field-Level Security (FLS)',
+        report.summary.fieldsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'),
+        '',
+      ],
+      [
+        'System User Permissions',
+        report.summary.userPermissionsMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'),
+        '',
+      ],
+      [
+        'Apex & VF Access',
+        report.summary.apexMatch ? pc.green('✔ MATCH') : pc.red('✖ MISMATCH'),
+        '',
+      ],
       [
         pc.bold('Overall Parity'),
-        report.is100PercentMatch ? pc.bold(pc.green('100.0%')) : pc.bold(pc.yellow(`${report.parityScore}%`)),
+        report.is100PercentMatch
+          ? pc.bold(pc.green('100.0%'))
+          : pc.bold(pc.yellow(`${report.parityScore}%`)),
         `${report.totalTargetPermissions}/${report.totalOriginalPermissions} permissions verified`,
       ]
     );
@@ -123,7 +141,11 @@ export default class Verify extends Command {
         this.log(pc.dim(`  ... and ${report.mismatches.length - 15} more mismatches.`));
       }
     } else {
-      this.log(pc.bold(pc.green('\n✔ PERFECT MATCH: All permissions from original profile are fully preserved.')));
+      this.log(
+        pc.bold(
+          pc.green('\n✔ PERFECT MATCH: All permissions from original profile are fully preserved.')
+        )
+      );
     }
   }
 }

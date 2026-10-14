@@ -86,10 +86,14 @@ export class XmlEngine {
     const parsed = this.parser.parse(xmlContent);
     const root = parsed.PermissionSetGroup;
     if (!root) {
-      throw new Error('Invalid PermissionSetGroup XML: Root element <PermissionSetGroup> not found');
+      throw new Error(
+        'Invalid PermissionSetGroup XML: Root element <PermissionSetGroup> not found'
+      );
     }
     const permissionSets = root.permissionSets
-      ? (Array.isArray(root.permissionSets) ? root.permissionSets : [root.permissionSets])
+      ? Array.isArray(root.permissionSets)
+        ? root.permissionSets
+        : [root.permissionSets]
       : [];
 
     return {
@@ -157,9 +161,7 @@ export class XmlEngine {
     }
 
     if (permSet.tabSettings && permSet.tabSettings.length > 0) {
-      sortedObj.tabSettings = [...permSet.tabSettings].sort((a, b) =>
-        a.tab.localeCompare(b.tab)
-      );
+      sortedObj.tabSettings = [...permSet.tabSettings].sort((a, b) => a.tab.localeCompare(b.tab));
     }
 
     if (permSet.userPermissions && permSet.userPermissions.length > 0) {
@@ -229,7 +231,8 @@ export class XmlEngine {
         recordType: r.recordType,
         visible: Boolean(r.visible),
         default: r.default !== undefined ? Boolean(r.default) : undefined,
-        personAccountDefault: r.personAccountDefault !== undefined ? Boolean(r.personAccountDefault) : undefined,
+        personAccountDefault:
+          r.personAccountDefault !== undefined ? Boolean(r.personAccountDefault) : undefined,
       })),
       tabVisibilities: this.ensureArray(raw.tabVisibilities).map((t: any) => ({
         tab: t.tab,

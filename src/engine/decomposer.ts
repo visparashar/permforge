@@ -50,7 +50,12 @@ export class ProfileDecomposer {
     } else {
       // Modular decomposition
       // 1. SObject & Field modular permission sets
-      const sobjectPermSets = this.createSObjectPermSets(loadedProfile, prefix, strategy, options.includeLicense);
+      const sobjectPermSets = this.createSObjectPermSets(
+        loadedProfile,
+        prefix,
+        strategy,
+        options.includeLicense
+      );
       generatedPermSets.push(...sobjectPermSets);
 
       // 2. User / System permissions
@@ -131,7 +136,13 @@ export class ProfileDecomposer {
     const apiName = `${prefix}Full`;
 
     const activeObj = (meta.objectPermissions || []).filter(
-      (o) => o.allowCreate || o.allowRead || o.allowEdit || o.allowDelete || o.viewAllRecords || o.modifyAllRecords
+      (o) =>
+        o.allowCreate ||
+        o.allowRead ||
+        o.allowEdit ||
+        o.allowDelete ||
+        o.viewAllRecords ||
+        o.modifyAllRecords
     );
     const activeField = (meta.fieldPermissions || []).filter((f) => f.readable || f.editable);
     const activeUser = (meta.userPermissions || []).filter((u) => u.enabled);
@@ -178,7 +189,13 @@ export class ProfileDecomposer {
   ): GeneratedPermissionSet[] {
     const meta = profile.metadata;
     const activeObj = (meta.objectPermissions || []).filter(
-      (o) => o.allowCreate || o.allowRead || o.allowEdit || o.allowDelete || o.viewAllRecords || o.modifyAllRecords
+      (o) =>
+        o.allowCreate ||
+        o.allowRead ||
+        o.allowEdit ||
+        o.allowDelete ||
+        o.viewAllRecords ||
+        o.modifyAllRecords
     );
     const activeField = (meta.fieldPermissions || []).filter((f) => f.readable || f.editable);
 
