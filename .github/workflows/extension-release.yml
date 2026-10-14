@@ -49,16 +49,29 @@ jobs:
             npm --prefix vscode-extension version "$TAG_VER" --no-git-tag-version --allow-same-version
           fi
 
-      - name: Package VSIX Extension
+      - name: Package VSIX for VS Code Marketplace & Open VSX
         run: |
           cd vscode-extension
           npm run build
-          npx @vscode/vsce package --no-dependencies --no-git-tag-version
+          
+          # 1. Package for Visual Studio Marketplace (Publisher: permforge)
+          echo "Packaging for VS Code Marketplace (publisher: permforge)..."
+          npm pkg set publisher="permforge"
+          npx @vscode/vsce package --no-dependencies --no-git-tag-version -o vscode-permforge-marketplace.vsix
+          
+          # 2. Package for Open VSX Registry (Publisher: visparashar)
+          echo "Packaging for Open VSX Registry (publisher: visparashar)..."
+          npm pkg set publisher="visparashar"
+          npx @vscode/vsce package --no-dependencies --no-git-tag-version -o vscode-permforge-openvsx.vsix
+          
+          # Reset package.json publisher back to permforge
+          npm pkg set publisher="permforge"
+          ls -la *.vsix
 
-      - name: Upload VSIX Artifact
+      - name: Upload VSIX Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: vscode-permforge-vsix
+          name: vscode-permforge-vsix-packages
           path: vscode-extension/*.vsix
           if-no-files-found: error
           retention-days: 30
@@ -77,8 +90,8 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || inputs.publish_openvsx != false
         run: |
           if [ -n "$OVSX_PAT" ]; then
-            echo "Publishing to Open VSX Registry..."
-            npx --yes ovsx publish vscode-extension/*.vsix --skip-duplicate
+            echo "Publishing vscode-permforge-openvsx.vsix (publisher: visparashar) to Open VSX Registry..."
+            npx --yes ovsx publish vscode-extension/vscode-permforge-openvsx.vsix --skip-duplicate
           else
             echo "::warning::OVSX_PAT secret is not configured in repository secrets. Skipping Open VSX automatic publish. The .vsix is ready in workflow artifacts and GitHub Releases."
           fi
@@ -88,10 +101,10 @@ jobs:
       - name: Deploy to VS Code Marketplace (Optional)
         run: |
           if [ -n "$VSCE_PAT" ]; then
-            echo "Publishing to Visual Studio Marketplace..."
-            npx --yes @vscode/vsce publish --packagePath vscode-extension/*.vsix -p "$VSCE_PAT"
+            echo "Publishing vscode-permforge-marketplace.vsix (publisher: permforge) to Visual Studio Marketplace..."
+            npx --yes @vscode/vsce publish --packagePath vscode-extension/vscode-permforge-marketplace.vsix -p "$VSCE_PAT"
           else
-            echo "VSCE_PAT secret not configured. Skipping automatic VS Code Marketplace upload. You can download the .vsix artifact and upload it manually via marketplace.visualstudio.com/manage."
+            echo "VSCE_PAT secret not configured. Skipping automatic VS Code Marketplace upload. You can download vscode-permforge-marketplace.vsix from artifacts or release and upload manually at marketplace.visualstudio.com/manage/publishers/permforge."
           fi
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
