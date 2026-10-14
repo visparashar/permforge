@@ -368,6 +368,88 @@ permforge wizard
 
 ---
 
+### 13. `permforge mcp`
+
+Starts the **Model Context Protocol (MCP)** server over standard I/O (`stdio`). Allows autonomous AI coding assistants (Claude Desktop, Cursor IDE, Antigravity, VS Code, Cline, Roo Code) to interact with and execute PermForge migration tools directly!
+
+```bash
+# Run locally
+permforge mcp
+
+# Or via npx directly in your AI assistant config
+npx -y permforge mcp
+```
+
+---
+
+## 🤖 AI Agent & Model Context Protocol (MCP) Integration
+
+PermForge comes with first-class **Model Context Protocol (MCP)** support built-in. AI coding agents can directly read your Salesforce metadata, audit profile complexity, decompose profiles, verify access parity, and enforce zero-profile-permissions policies autonomously.
+
+### ⚙️ Connecting to AI Assistants
+
+Add PermForge to your MCP configuration file:
+
+#### 1. Claude Desktop (`claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"]
+    }
+  }
+}
+```
+
+#### 2. Cursor IDE (`Settings -> Features -> MCP -> Add New MCP Server`)
+
+- **Name:** `permforge`
+- **Type:** `command`
+- **Command:** `npx -y permforge mcp`
+
+#### 3. VS Code / Cline / Roo Code / Antigravity (`mcp_settings.json`)
+
+```json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"]
+    }
+  }
+}
+```
+
+---
+
+### 🛠️ Exposed MCP Tools for AI Agents
+
+| MCP Tool Name         | Description                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `permforge_analyze`   | Audits profiles, counts SObject/FLS permissions, computes complexity score (0-100), and flags high-risk capabilities (`ModifyAllData`, `AuthorApex`). |
+| `permforge_decompose` | Splits a monolithic profile into clean, domain-aligned Permission Sets and a Persona PSG with 100% parity check.                                      |
+| `permforge_cluster`   | Clusters multiple profiles across the org to extract `Standard_Employee_Baseline` + role-specific deltas.                                             |
+| `permforge_verify`    | Mathematically proves access parity between a source Profile and target Permission Sets / PSG.                                                        |
+| `permforge_strip`     | Removes deprecated permissions from `.profile-meta.xml` while preserving layout assignments and settings.                                             |
+| `permforge_lint`      | Scans profiles for deprecated permissions and reports compliance for CI/CD and PR reviews.                                                            |
+| `permforge_uap`       | Generates native Salesforce `UserAccessPolicy` metadata for automated user provisioning.                                                              |
+| `permforge_mute`      | Generates `MutingPermissionSet` metadata to restrict actions (e.g. Delete) on a PSG.                                                                  |
+| `permforge_graph`     | Emits interactive Mermaid diagrams or ASCII trees of the permission hierarchy.                                                                        |
+
+---
+
+### 💬 Example Prompts to Give Your AI Assistant
+
+- _"Analyze all profiles in `force-app/main/default/profiles` and list any with high-risk security grants."_
+- _"Decompose `Sales_User.profile-meta.xml` into domain permission sets and verify access parity."_
+- _"Cluster our profiles with a 75% threshold to extract a shared base user permission set."_
+- _"Lint our repository profiles and tell me if any contain deprecated permissions."_
+- _"Generate a User Access Policy that auto-assigns `Sales_User_PSG` when Department is Sales."_
+
+---
+
 ## 💻 Programmatic API Usage
 
 PermForge can be embedded directly in your custom TypeScript / JavaScript scripts, CI/CD pipelines, or GitHub Actions:

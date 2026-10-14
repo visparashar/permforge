@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-10-14
+
+### Added
+
+- **First-Class Model Context Protocol (MCP) Server**: Added native MCP server support via `@modelcontextprotocol/sdk` enabling autonomous AI agents (Claude Desktop, Cursor IDE, Antigravity, VS Code, Cline, Roo Code) to run PermForge tools directly.
+- **`permforge mcp` CLI command**: Launches the MCP server over standard I/O (`stdio`).
+- **9 Exposed MCP Tools**:
+  - `permforge_analyze`: Profile audit, complexity scoring, and risk detector.
+  - `permforge_decompose`: Monolithic profile decomposition into domain Permission Sets & PSGs.
+  - `permforge_cluster`: Multi-profile clustering and baseline extraction.
+  - `permforge_verify`: Mathematical parity diff engine.
+  - `permforge_strip`: Deprecated permission sanitizer for profiles.
+  - `permforge_lint`: Zero-profile-permissions standard compliance checker.
+  - `permforge_uap`: Native User Access Policy generator.
+  - `permforge_mute`: Muting Permission Set generator.
+  - `permforge_graph`: Permission architecture hierarchy visualizer.
+- Expanded test suite to 23 automated tests with 100% pass rate.
+
+---
+
 ## [1.1.0] - 2026-10-14
 
 ### Added

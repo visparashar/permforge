@@ -13,3 +13,4 @@ export * from './engine/uap-builder.js';
 export * from './engine/mute-builder.js';
 export * from './engine/profile-linter.js';
 export * from './engine/graph-builder.js';
+export * from './mcp/server.js';

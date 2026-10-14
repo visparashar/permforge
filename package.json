@@ -1,6 +1,6 @@
 {
   "name": "permforge",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Intelligent Salesforce Profile to Permission Set & Permission Set Group migration and modularization toolkit.",
   "author": "Vishal Parashar",
@@ -89,16 +89,21 @@
       },
       "graph": {
         "description": "Visualize permission architecture hierarchy and dependencies"
+      },
+      "mcp": {
+        "description": "Start Model Context Protocol (MCP) server for AI coding assistants"
       }
     }
   },
   "dependencies": {
     "@inquirer/prompts": "^8.7.3",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@oclif/core": "^4.2.14",
     "cli-table3": "^0.6.5",
     "fast-xml-parser": "^4.5.3",
     "glob": "^11.0.1",
-    "picocolors": "^1.1.1"
+    "picocolors": "^1.1.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@oclif/plugin-help": "^6.2.26",
