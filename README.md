@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner.svg">
+    <img src="docs/assets/banner.png" alt="PermForge — Salesforce Profile to Permission Set Migration Engine" width="100%">
+  </picture>
+</p>
+
 # 🛡️ PermForge
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,7 +16,7 @@
 
 > **The Complete, Open-Source Salesforce Profile to Permission Set & Permission Set Group Migration Platform.**
 >
-> 🌐 **Live Website & Documentation:** [https://visparashar.github.io/permforge/](https://visparashar.github.io/permforge/)
+> 🌐 **Live Website & Documentation:** [https://visparashar.github.io/permforge/](https://visparashar.github.io/permforge/) &bull; 🗺️ **[Product Roadmap](ROADMAP.md)**
 
 ---
 
@@ -508,6 +515,20 @@ npm run format
 # Clean and build
 npm run build
 ```
+
+---
+
+## 🗺️ Product & Technical Roadmap
+
+PermForge is actively developed with a multi-phase roadmap towards the Salesforce Profile Permissions Retirement deadline:
+
+- **v1.0 – v1.2 (Current):** Core decomposition engine, mathematical parity verification, cross-profile clustering, native MCP server, and NPSP validation.
+- **v1.3.0 (Q2 2026):** Record Type decoupling and Dynamic Forms modernization advisor.
+- **v1.4.0 (Q3 2026):** Native `@salesforce/plugin-permforge` (`sf permforge`) CLI plugin with direct org connectivity and automated user reassignment.
+- **v1.5.0 (Q4 2026):** Usage-driven least-privilege optimization using Salesforce Event Monitoring logs.
+- **v2.0.0 (2027):** Cross-environment drift guard, GitHub Actions PR bot, and SOC2/HIPAA compliance export packages.
+
+See the complete [Product & Technical Roadmap](ROADMAP.md) for details.
 
 ---
 

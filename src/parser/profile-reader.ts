@@ -41,8 +41,12 @@ export class ProfileReader {
 
     try {
       const stats = await fs.stat(sourcePattern);
+      if (stats.isFile()) {
+        const profile = await this.loadProfile(sourcePattern);
+        return [profile];
+      }
       if (stats.isDirectory()) {
-        searchPattern = path.join(sourcePattern, '**/*.profile-meta.xml');
+        searchPattern = path.join(sourcePattern, '**/*.{profile-meta.xml,profile}');
       }
     } catch {
       // pattern is already a glob or file that doesn't exist directly

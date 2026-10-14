@@ -1,0 +1,728 @@
+{
+  "commands": {
+    "analyze": {
+      "aliases": [],
+      "args": {},
+      "description": "Analyze Salesforce profiles to inventory permissions, detect high-risk access, and score complexity",
+      "examples": [
+        "<%= config.bin %> analyze",
+        "<%= config.bin %> analyze --source force-app/main/default/profiles",
+        "<%= config.bin %> analyze --source path/to/Sales_User.profile-meta.xml",
+        "<%= config.bin %> analyze --json"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to a profile file, directory, or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "analyze",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "analyze.js"
+      ]
+    },
+    "cluster": {
+      "aliases": [],
+      "args": {},
+      "description": "Analyze all profiles together to extract a shared Standard Baseline Permission Set and isolate role-specific deltas",
+      "examples": [
+        "<%= config.bin %> cluster",
+        "<%= config.bin %> cluster --source force-app/main/default/profiles",
+        "<%= config.bin %> cluster --threshold 0.6 --base-name \"Global_Core_Access\"",
+        "<%= config.bin %> cluster --output-dir force-app/main/default"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profiles directory or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "threshold": {
+          "char": "t",
+          "description": "Frequency threshold for baseline inclusion (0.1 to 1.0)",
+          "name": "threshold",
+          "default": "0.75",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "base-name": {
+          "description": "API Name for the generated shared baseline Permission Set",
+          "name": "base-name",
+          "default": "Standard_Employee_Baseline",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated permission sets and groups",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-groups": {
+          "description": "Do not generate Permission Set Groups",
+          "name": "no-groups",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "cluster",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "cluster.js"
+      ]
+    },
+    "decompose": {
+      "aliases": [],
+      "args": {},
+      "description": "Decompose legacy Profiles into modular, capability-based Permission Sets and Permission Set Groups",
+      "examples": [
+        "<%= config.bin %> decompose --source path/to/Sales_User.profile-meta.xml",
+        "<%= config.bin %> decompose --source force-app/main/default/profiles --output-dir force-app/main/default",
+        "<%= config.bin %> decompose --source path/to/Profile.profile-meta.xml --strategy by-object",
+        "<%= config.bin %> decompose --source path/to/Profile.profile-meta.xml --strategy consolidated"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to a profile file, directory, or glob pattern",
+          "name": "source",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated permission sets and groups",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "strategy": {
+          "description": "Decomposition strategy",
+          "name": "strategy",
+          "default": "by-domain",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "by-domain",
+            "by-object",
+            "consolidated"
+          ],
+          "type": "option"
+        },
+        "prefix": {
+          "description": "Custom prefix for generated permission sets (defaults to profile name)",
+          "name": "prefix",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-group": {
+          "description": "Do not generate a Permission Set Group",
+          "name": "no-group",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "include-license": {
+          "description": "Include the original userLicense on generated permission sets",
+          "name": "include-license",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "decompose",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "decompose.js"
+      ]
+    },
+    "graph": {
+      "aliases": [],
+      "args": {},
+      "description": "Visualize permission architecture hierarchy and dependencies (PSG -> Permission Sets -> SObjects)",
+      "examples": [
+        "<%= config.bin %> graph",
+        "<%= config.bin %> graph --format mermaid",
+        "<%= config.bin %> graph --format markdown --output PERMISSION_GRAPH.md"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Directory containing permissionsets and permissionsetgroups",
+          "name": "source",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "format": {
+          "char": "f",
+          "description": "Output format",
+          "name": "format",
+          "default": "tree",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "tree",
+            "mermaid",
+            "markdown"
+          ],
+          "type": "option"
+        },
+        "output": {
+          "char": "o",
+          "description": "Optional file to write the graph output to",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "graph",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "graph.js"
+      ]
+    },
+    "lint": {
+      "aliases": [],
+      "args": {},
+      "description": "Lint profiles in CI/CD to enforce the zero-profile-permissions standard and prevent tech debt regressions",
+      "examples": [
+        "<%= config.bin %> lint",
+        "<%= config.bin %> lint --source force-app/main/default/profiles",
+        "<%= config.bin %> lint --github-actions",
+        "<%= config.bin %> lint --warn-only"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profiles directory or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "warn-only": {
+          "description": "Emit warnings without exiting with error code 1",
+          "name": "warn-only",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "github-actions": {
+          "description": "Format output as GitHub Actions annotations",
+          "name": "github-actions",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "lint",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "lint.js"
+      ]
+    },
+    "mcp": {
+      "aliases": [],
+      "args": {},
+      "description": "Start the PermForge Model Context Protocol (MCP) server for AI coding assistants (Cursor, Claude Desktop, Antigravity, Cline, VS Code)",
+      "examples": [
+        "<%= config.bin %> mcp",
+        "npx -y permforge mcp"
+      ],
+      "flags": {},
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "mcp",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "mcp.js"
+      ]
+    },
+    "mute": {
+      "aliases": [],
+      "args": {},
+      "description": "Generate a Muting Permission Set to selectively restrict permissions inside a Permission Set Group",
+      "examples": [
+        "<%= config.bin %> mute --name Sales_Junior_Mute --mute-delete Account,Opportunity",
+        "<%= config.bin %> mute --name Contractor_Mute --mute-delete Case --mute-perms ExportReport"
+      ],
+      "flags": {
+        "name": {
+          "char": "n",
+          "description": "API Name for the generated Muting Permission Set",
+          "name": "name",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "mute-delete": {
+          "description": "Comma-separated list of SObjects where Delete access will be muted",
+          "name": "mute-delete",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "mute-perms": {
+          "description": "Comma-separated list of User Permissions to mute",
+          "name": "mute-perms",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for metadata",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "mute",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "mute.js"
+      ]
+    },
+    "plan": {
+      "aliases": [],
+      "args": {},
+      "description": "Generate user assignment rollout plans, CSV import templates, and rollback scripts",
+      "examples": [
+        "<%= config.bin %> plan --profile Sales_User --group Sales_User_PSG",
+        "<%= config.bin %> plan --profile Sales_User --group Sales_User_PSG --target-base \"Minimum Access - Salesforce\""
+      ],
+      "flags": {
+        "profile": {
+          "char": "p",
+          "description": "Name of the legacy profile",
+          "name": "profile",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "group": {
+          "char": "g",
+          "description": "Name of the target Permission Set Group",
+          "name": "group",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "target-base": {
+          "char": "b",
+          "description": "Target base profile to assign users to",
+          "name": "target-base",
+          "default": "Minimum Access - Salesforce",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Directory to write rollout scripts and templates",
+          "name": "output-dir",
+          "default": "migration-plans",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "plan",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "plan.js"
+      ]
+    },
+    "report": {
+      "aliases": [],
+      "args": {},
+      "description": "Generate a visual, interactive HTML security and parity audit report",
+      "examples": [
+        "<%= config.bin %> report",
+        "<%= config.bin %> report --source force-app/main/default/profiles",
+        "<%= config.bin %> report --output ./audit-reports/security-audit.html"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profiles directory or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output": {
+          "char": "o",
+          "description": "Destination path for generated HTML report",
+          "name": "output",
+          "default": "permforge-report.html",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "report",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "report.js"
+      ]
+    },
+    "strip": {
+      "aliases": [
+        "clean"
+      ],
+      "args": {},
+      "description": "Sanitize & strip deprecated permissions from profiles, retaining layout assignments, credentials, and settings",
+      "examples": [
+        "<%= config.bin %> strip --source path/to/Sales_User.profile-meta.xml",
+        "<%= config.bin %> strip --source force-app/main/default/profiles --output-dir force-app/main/default/clean-profiles",
+        "<%= config.bin %> strip --source force-app/main/default/profiles --in-place --backup"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profile file, directory, or glob pattern",
+          "name": "source",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for stripped profiles (defaults to writing in place if --in-place)",
+          "name": "output-dir",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "in-place": {
+          "description": "Overwrite original profile files in-place",
+          "name": "in-place",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "backup": {
+          "description": "Create a .bak copy before modifying files",
+          "name": "backup",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "strip",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "strip.js"
+      ]
+    },
+    "uap": {
+      "aliases": [],
+      "args": {},
+      "description": "Generate native Salesforce User Access Policy (UAP) metadata to automate zero-touch user provisioning",
+      "examples": [
+        "<%= config.bin %> uap --name Sales_User_Assign --group Sales_User_PSG --criteria \"Department=Sales\"",
+        "<%= config.bin %> uap --name Support_Assign --group Support_PSG --criteria \"Department=Support,Profile.Name=Minimum Access - Salesforce\""
+      ],
+      "flags": {
+        "name": {
+          "char": "n",
+          "description": "DeveloperName for the User Access Policy",
+          "name": "name",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "group": {
+          "char": "g",
+          "description": "Target Permission Set Group to grant",
+          "name": "group",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "criteria": {
+          "char": "c",
+          "description": "Comma-separated Field=Value criteria pairs (e.g. \"Department=Sales,UserType=Standard\")",
+          "name": "criteria",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for metadata",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "uap",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "uap.js"
+      ]
+    },
+    "verify": {
+      "aliases": [],
+      "args": {},
+      "description": "Verify security & access parity between a source Profile and target Permission Sets / Permission Set Groups",
+      "examples": [
+        "<%= config.bin %> verify --profile path/to/Sales_User.profile-meta.xml --group path/to/Sales_User_PSG.permissionsetgroup-meta.xml",
+        "<%= config.bin %> verify --profile path/to/Sales_User.profile-meta.xml --permsets-dir force-app/main/default/permissionsets"
+      ],
+      "flags": {
+        "profile": {
+          "char": "p",
+          "description": "Path to source profile (.profile-meta.xml)",
+          "name": "profile",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "group": {
+          "char": "g",
+          "description": "Path to target Permission Set Group (.permissionsetgroup-meta.xml)",
+          "name": "group",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "permsets-dir": {
+          "char": "d",
+          "description": "Directory where target permission sets reside",
+          "name": "permsets-dir",
+          "default": "force-app/main/default/permissionsets",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "verify",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "verify.js"
+      ]
+    },
+    "wizard": {
+      "aliases": [],
+      "args": {},
+      "description": "Interactive guided step-by-step wizard for Salesforce profile migration and modularization",
+      "examples": [
+        "<%= config.bin %> wizard"
+      ],
+      "flags": {},
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "wizard",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "wizard.js"
+      ]
+    }
+  },
+  "version": "1.2.0"
+}

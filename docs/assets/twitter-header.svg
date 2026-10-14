@@ -1,0 +1,252 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="th-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070a13"/>
+      <stop offset="50%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#080c16"/>
+    </linearGradient>
+
+    <!-- Ambient Glows -->
+    <radialGradient id="th-glow-cyan" cx="20%" cy="20%" r="45%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="th-glow-indigo" cx="80%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="th-glow-purple" cx="45%" cy="85%" r="40%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Brand Gradients -->
+    <linearGradient id="th-brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="th-brand-text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <linearGradient id="th-card-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#090e1a" stop-opacity="0.97"/>
+    </linearGradient>
+
+    <linearGradient id="th-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.4"/>
+    </linearGradient>
+
+    <linearGradient id="th-chip-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <pattern id="th-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="1" stroke-opacity="0.12"/>
+      <circle cx="40" cy="40" r="1" fill="#475569" fill-opacity="0.25"/>
+    </pattern>
+
+    <filter id="th-shadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#6366f1" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="url(#th-bg)"/>
+  <rect width="1500" height="500" fill="url(#th-grid)"/>
+  <rect width="1500" height="500" fill="url(#th-glow-cyan)"/>
+  <rect width="1500" height="500" fill="url(#th-glow-indigo)"/>
+  <rect width="1500" height="500" fill="url(#th-glow-purple)"/>
+  <rect x="0" y="0" width="1500" height="3" fill="url(#th-brand-grad)"/>
+
+  <!-- Left / Center Content -->
+  <g transform="translate(80, 48)">
+    <!-- Badges Row -->
+    <g transform="translate(0, 0)">
+      <rect width="298" height="28" rx="14" fill="#0f172a" fill-opacity="0.85" stroke="url(#th-border)" stroke-width="1"/>
+      <circle cx="15" cy="14" r="4" fill="#10b981"/>
+      <circle cx="15" cy="14" r="7" fill="#10b981" fill-opacity="0.2"/>
+      <text x="28" y="18" class="font-mono" font-size="10" font-weight="700" fill="#38bdf8" letter-spacing="0.5">SALESFORCE PROFILE RETIREMENT READY</text>
+
+      <g transform="translate(308, 0)">
+        <rect width="64" height="28" rx="14" fill="#0f172a" fill-opacity="0.85" stroke="#334155" stroke-width="1"/>
+        <text x="32" y="18" class="font-mono" font-size="11" font-weight="700" fill="#a5b4fc" text-anchor="middle">v1.2.0</text>
+      </g>
+    </g>
+
+    <!-- Brand Header -->
+    <g transform="translate(0, 44)">
+      <!-- Logo Shield -->
+      <rect width="58" height="58" rx="14" fill="#0f172a" stroke="url(#th-border)" stroke-width="1.5"/>
+      <g transform="translate(7, 7) scale(0.9)">
+        <path d="M24 4L7 11V22C7 33.1 14.3 43.4 24 46C33.7 43.4 41 33.1 41 22V11L24 4Z" 
+              fill="url(#th-brand-grad)" fill-opacity="0.2" stroke="url(#th-brand-grad)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M16 19H32L30 25H27V31H21V25H18L16 19Z" fill="url(#th-brand-grad)"/>
+        <path d="M20 18V15C20 12.8 21.8 11 24 11C26.2 11 28 12.8 28 15V18" stroke="url(#th-brand-grad)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="24" r="2.2" fill="#ffffff"/>
+        <circle cx="13" cy="22" r="1.8" fill="#38bdf8"/>
+        <circle cx="35" cy="22" r="1.8" fill="#c084fc"/>
+        <circle cx="24" cy="38" r="1.8" fill="#818cf8"/>
+      </g>
+
+      <!-- Wordmark -->
+      <g transform="translate(74, 0)">
+        <text x="0" y="40" class="font-sans" font-size="40" font-weight="800" fill="#ffffff" letter-spacing="-1">
+          Perm<tspan fill="url(#th-brand-text)">Forge</tspan>
+        </text>
+        <text x="2" y="58" class="font-mono" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.5">
+          SALESFORCE PERMISSIONS PLATFORM
+        </text>
+      </g>
+    </g>
+
+    <!-- Headline -->
+    <g transform="translate(0, 136)">
+      <text x="0" y="0" class="font-sans" font-size="24" font-weight="700" fill="#e2e8f0">
+        Decompose Legacy Profiles into
+      </text>
+      <text x="0" y="34" class="font-sans" font-size="28" font-weight="800" fill="url(#th-brand-text)">
+        Modular Permission Sets &amp; PSGs
+      </text>
+    </g>
+
+    <!-- Subtitle -->
+    <g transform="translate(0, 204)">
+      <text x="0" y="0" class="font-sans" font-size="14" font-weight="400" fill="#94a3b8">
+        100% mathematical parity diff engine • Cross-profile clustering • Automated muting
+      </text>
+      <text x="0" y="22" class="font-sans" font-size="14" font-weight="400" fill="#94a3b8">
+        Zero tech debt • Native Model Context Protocol (MCP) server for AI coding agents
+      </text>
+    </g>
+
+    <!-- Chips Row -->
+    <g transform="translate(0, 256)">
+      <rect width="156" height="28" rx="7" fill="url(#th-chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="12" y="18" class="font-sans" font-size="11.5" font-weight="600" fill="#38bdf8">🛡️ 100% Parity Diff</text>
+
+      <rect x="166" width="156" height="28" rx="7" fill="url(#th-chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="178" y="18" class="font-sans" font-size="11.5" font-weight="600" fill="#818cf8">🧬 Persona Cluster</text>
+
+      <rect x="332" width="156" height="28" rx="7" fill="url(#th-chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="344" y="18" class="font-sans" font-size="11.5" font-weight="600" fill="#c084fc">🤖 MCP Agent Tools</text>
+
+      <rect x="498" width="168" height="28" rx="7" fill="url(#th-chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="510" y="18" class="font-sans" font-size="11.5" font-weight="600" fill="#34d399">⚡ User Access Policies</text>
+    </g>
+
+    <!-- Terminal Command Line -->
+    <g transform="translate(0, 312)">
+      <rect width="666" height="42" rx="9" fill="#090e1a" stroke="url(#th-border)" stroke-width="1.2"/>
+      <g transform="translate(16, 26)">
+        <text class="font-mono" font-size="13.5" font-weight="700" fill="#38bdf8">$</text>
+        <text x="18" class="font-mono" font-size="13.5" font-weight="500" fill="#f8fafc">npx permforge analyze</text>
+        <text x="204" class="font-mono" font-size="12.5" font-weight="400" fill="#64748b">--source force-app/main/default/profiles</text>
+      </g>
+      <g transform="translate(566, 8)">
+        <rect width="90" height="26" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="45" y="17" class="font-mono" font-size="10.5" font-weight="600" fill="#94a3b8" text-anchor="middle">Zero-Install</text>
+      </g>
+    </g>
+
+    <!-- Footer Attribution -->
+    <g transform="translate(0, 380)">
+      <text x="0" y="14" class="font-sans" font-size="12" font-weight="500" fill="#64748b">
+        Open Source (MIT) • github.com/visparashar/permforge • visparashar.github.io/permforge
+      </text>
+    </g>
+  </g>
+
+  <!-- Right Floating Mockup Card -->
+  <g transform="translate(820, 48)" filter="url(#th-shadow)">
+    <rect width="600" height="404" rx="16" fill="url(#th-card-bg)" stroke="url(#th-border)" stroke-width="1.5"/>
+
+    <!-- Window Bar -->
+    <g transform="translate(0, 0)">
+      <path d="M 0 16 Q 0 0 16 0 L 584 0 Q 600 0 600 16 L 600 42 L 0 42 Z" fill="#090d16" fill-opacity="0.95"/>
+      <line x1="0" y1="42" x2="600" y2="42" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="22" cy="21" r="5" fill="#ef4444"/>
+      <circle cx="38" cy="21" r="5" fill="#f59e0b"/>
+      <circle cx="54" cy="21" r="5" fill="#10b981"/>
+      <text x="300" y="25" class="font-mono" font-size="11" font-weight="600" fill="#94a3b8" text-anchor="middle">
+        permforge verify --summary
+      </text>
+      <g transform="translate(480, 9)">
+        <rect width="104" height="24" rx="12" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1"/>
+        <circle cx="10" cy="12" r="3" fill="#10b981"/>
+        <text x="18" y="16" class="font-mono" font-size="10" font-weight="700" fill="#34d399">100% PARITY</text>
+      </g>
+    </g>
+
+    <!-- Card Content -->
+    <g transform="translate(24, 60)">
+      <text x="0" y="14" class="font-mono" font-size="12.5" font-weight="700" fill="#38bdf8">❯</text>
+      <text x="16" y="14" class="font-mono" font-size="12.5" font-weight="600" fill="#f8fafc">permforge decompose --profile Custom_Sales.profile-meta.xml</text>
+
+      <g transform="translate(0, 42)">
+        <text x="0" y="14" class="font-mono" font-size="11.5" fill="#10b981">✔</text>
+        <text x="14" y="14" class="font-mono" font-size="11.5" fill="#cbd5e1">Scanned Profile:</text>
+        <text x="130" y="14" class="font-mono" font-size="11.5" font-weight="600" fill="#38bdf8">148 Objects, 2,180 FLS, 42 Apex</text>
+      </g>
+
+      <g transform="translate(0, 64)">
+        <text x="0" y="14" class="font-mono" font-size="11.5" fill="#10b981">✔</text>
+        <text x="14" y="14" class="font-mono" font-size="11.5" fill="#cbd5e1">Decomposed:</text>
+        <text x="105" y="14" class="font-mono" font-size="11.5" font-weight="600" fill="#c084fc">6 Domain PermSets + 1 Persona PSG</text>
+      </g>
+
+      <!-- Parity Engine Mini Card -->
+      <g transform="translate(0, 92)">
+        <rect width="552" height="120" rx="10" fill="#080c14" stroke="#10b981" stroke-opacity="0.4" stroke-width="1.2"/>
+        <g transform="translate(14, 14)">
+          <path d="M7 2L2 4.5V8.5C2 12 4.5 15.2 7 16C9.5 15.2 12 12 12 8.5V4.5L7 2Z" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.4"/>
+          <text x="20" y="14" class="font-sans" font-size="12" font-weight="700" fill="#f8fafc">MATHEMATICAL DIFF &amp; ACCESS PARITY</text>
+          <rect x="424" y="0" width="88" height="20" rx="5" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1"/>
+          <text x="468" y="14" class="font-mono" font-size="10" font-weight="700" fill="#34d399" text-anchor="middle">ZERO LOSS</text>
+        </g>
+        <line x1="14" y1="38" x2="538" y2="38" stroke="#1e293b" stroke-width="1"/>
+        <g transform="translate(14, 56)">
+          <text x="0" y="0" class="font-mono" font-size="11" fill="#94a3b8">Source Profile:</text>
+          <text x="125" y="0" class="font-mono" font-size="11" font-weight="600" fill="#f8fafc">148 Objs • 2,180 FLS • 42 Apex</text>
+        </g>
+        <g transform="translate(14, 75)">
+          <text x="0" y="0" class="font-mono" font-size="11" fill="#94a3b8">Combined PSGs:</text>
+          <text x="125" y="0" class="font-mono" font-size="11" font-weight="600" fill="#f8fafc">148 Objs • 2,180 FLS • 42 Apex</text>
+        </g>
+        <g transform="translate(14, 94)">
+          <text x="0" y="0" class="font-mono" font-size="11" fill="#94a3b8">Parity Engine:</text>
+          <text x="125" y="0" class="font-mono" font-size="11" font-weight="700" fill="#34d399">100.0% MATCH [CRUD: 0 diff | FLS: 0 diff]</text>
+        </g>
+      </g>
+
+      <!-- 3 Metrics Strip -->
+      <g transform="translate(0, 230)">
+        <rect width="176" height="62" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="88" y="30" class="font-sans" font-size="20" font-weight="800" fill="#10b981" text-anchor="middle">100%</text>
+        <text x="88" y="48" class="font-mono" font-size="9.5" font-weight="600" fill="#94a3b8" text-anchor="middle">PARITY GUARANTEE</text>
+
+        <rect x="188" width="176" height="62" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="276" y="30" class="font-sans" font-size="20" font-weight="800" fill="#38bdf8" text-anchor="middle">0 Delta</text>
+        <text x="276" y="48" class="font-mono" font-size="9.5" font-weight="600" fill="#94a3b8" text-anchor="middle">ZERO REGRESSIONS</text>
+
+        <rect x="376" width="176" height="62" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="464" y="30" class="font-sans" font-size="20" font-weight="800" fill="#c084fc" text-anchor="middle">Instant</text>
+        <text x="464" y="48" class="font-mono" font-size="9.5" font-weight="600" fill="#94a3b8" text-anchor="middle">CLEAN ARCHITECTURE</text>
+      </g>
+    </g>
+  </g>
+</svg>

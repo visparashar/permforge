@@ -1,0 +1,342 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <!-- Background Dark Gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070a13"/>
+      <stop offset="50%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#080c16"/>
+    </linearGradient>
+
+    <!-- Ambient Glow Gradients -->
+    <radialGradient id="glow-cyan" cx="15%" cy="20%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-indigo" cx="85%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-purple" cx="25%" cy="85%" r="45%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Brand Linear Gradient -->
+    <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <!-- Text Shimmer Gradient -->
+    <linearGradient id="brand-text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Emerald Gradient -->
+    <linearGradient id="emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+
+    <!-- Card Background Gradient -->
+    <linearGradient id="card-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#090e1a" stop-opacity="0.97"/>
+    </linearGradient>
+
+    <!-- Glass Borders -->
+    <linearGradient id="card-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.45"/>
+    </linearGradient>
+
+    <linearGradient id="metric-border" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.35"/>
+    </linearGradient>
+
+    <!-- Chip Background -->
+    <linearGradient id="chip-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="1" stroke-opacity="0.12"/>
+      <circle cx="40" cy="40" r="1" fill="#475569" fill-opacity="0.25"/>
+    </pattern>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow-card" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.65"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#6366f1" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+  </style>
+
+  <!-- Base Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Blueprint Grid -->
+  <rect width="1280" height="640" fill="url(#grid)"/>
+
+  <!-- Atmosphere Glows -->
+  <rect width="1280" height="640" fill="url(#glow-cyan)"/>
+  <rect width="1280" height="640" fill="url(#glow-indigo)"/>
+  <rect width="1280" height="640" fill="url(#glow-purple)"/>
+
+  <!-- Top Accent Shimmer -->
+  <rect x="0" y="0" width="1280" height="3" fill="url(#brand-grad)"/>
+
+  <!-- ================= LEFT COLUMN: HERO CONTENT ================= -->
+  <g transform="translate(68, 56)">
+
+    <!-- Category Pill Tag (Separated badges to ensure crisp rendering) -->
+    <g transform="translate(0, 0)">
+      <!-- Badge 1: Status -->
+      <rect width="298" height="30" rx="15" fill="#0f172a" fill-opacity="0.85" stroke="url(#card-border)" stroke-width="1"/>
+      <circle cx="16" cy="15" r="4" fill="#10b981"/>
+      <circle cx="16" cy="15" r="7" fill="#10b981" fill-opacity="0.2"/>
+      <text x="30" y="19" class="font-mono" font-size="10.5" font-weight="700" fill="#38bdf8" letter-spacing="0.5">SALESFORCE PROFILE RETIREMENT READY</text>
+
+      <!-- Badge 2: Version -->
+      <g transform="translate(308, 0)">
+        <rect width="66" height="30" rx="15" fill="#0f172a" fill-opacity="0.85" stroke="#334155" stroke-width="1"/>
+        <text x="33" y="19" class="font-mono" font-size="11" font-weight="700" fill="#a5b4fc" text-anchor="middle">v1.2.0</text>
+      </g>
+    </g>
+
+    <!-- Brand Identity (Shield Logo + Name + Category) -->
+    <g transform="translate(0, 48)">
+      <!-- Logo Shield Icon Box -->
+      <rect width="64" height="64" rx="16" fill="#0f172a" stroke="url(#card-border)" stroke-width="1.5"/>
+      <g transform="translate(8, 8)">
+        <path d="M24 4L7 11V22C7 33.1 14.3 43.4 24 46C33.7 43.4 41 33.1 41 22V11L24 4Z" 
+              fill="url(#brand-grad)" fill-opacity="0.2" stroke="url(#brand-grad)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M16 19H32L30 25H27V31H21V25H18L16 19Z" fill="url(#brand-grad)"/>
+        <path d="M20 18V15C20 12.8 21.8 11 24 11C26.2 11 28 12.8 28 15V18" stroke="url(#brand-grad)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="24" r="2.2" fill="#ffffff"/>
+        <circle cx="13" cy="22" r="1.8" fill="#38bdf8"/>
+        <circle cx="35" cy="22" r="1.8" fill="#c084fc"/>
+        <circle cx="24" cy="38" r="1.8" fill="#818cf8"/>
+      </g>
+
+      <!-- Wordmark -->
+      <g transform="translate(80, 0)">
+        <text x="0" y="44" class="font-sans" font-size="44" font-weight="800" fill="#ffffff" letter-spacing="-1">
+          Perm<tspan fill="url(#brand-text)">Forge</tspan>
+        </text>
+        <text x="2" y="65" class="font-mono" font-size="11.5" font-weight="700" fill="#94a3b8" letter-spacing="1.5">
+          SALESFORCE PERMISSIONS PLATFORM
+        </text>
+      </g>
+    </g>
+
+    <!-- Main Value Headline (Structured cleanly without wrapping bugs) -->
+    <g transform="translate(0, 148)">
+      <text x="0" y="0" class="font-sans" font-size="24" font-weight="700" fill="#e2e8f0">
+        Decompose Legacy Profiles into
+      </text>
+      <text x="0" y="36" class="font-sans" font-size="28" font-weight="800" fill="url(#brand-text)">
+        Modular Permission Sets &amp; PSGs
+      </text>
+    </g>
+
+    <!-- Value Proposition Subtitle -->
+    <g transform="translate(0, 222)">
+      <text x="0" y="0" class="font-sans" font-size="14" font-weight="400" fill="#94a3b8">
+        100% mathematical parity verification diff engine. Cluster shared
+      </text>
+      <text x="0" y="22" class="font-sans" font-size="14" font-weight="400" fill="#94a3b8">
+        baselines, sanitize XML, and automate with AI agent MCP tools.
+      </text>
+    </g>
+
+    <!-- Core Feature Chips Grid (2 rows x 3 columns) -->
+    <g transform="translate(0, 276)">
+      <!-- Row 1 -->
+      <rect width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="19" class="font-sans" font-size="12" font-weight="600" fill="#38bdf8">🛡️ 100% Parity Diff</text>
+
+      <rect x="178" width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="190" y="19" class="font-sans" font-size="12" font-weight="600" fill="#818cf8">🧬 Persona Cluster</text>
+
+      <rect x="356" width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="368" y="19" class="font-sans" font-size="12" font-weight="600" fill="#c084fc">🤖 MCP Agent Ready</text>
+
+      <!-- Row 2 -->
+      <g transform="translate(0, 38)">
+        <rect width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+        <text x="14" y="19" class="font-sans" font-size="12" font-weight="600" fill="#34d399">⚡ User Access Policies</text>
+
+        <rect x="178" width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+        <text x="190" y="19" class="font-sans" font-size="12" font-weight="600" fill="#f43f5e">🚫 Muting Perm Sets</text>
+
+        <rect x="356" width="168" height="30" rx="8" fill="url(#chip-bg)" stroke="#334155" stroke-width="1"/>
+        <text x="368" y="19" class="font-sans" font-size="12" font-weight="600" fill="#fbbf24">📊 CI/CD Guardrails</text>
+      </g>
+    </g>
+
+    <!-- Quick Terminal Command Box -->
+    <g transform="translate(0, 372)">
+      <rect width="524" height="46" rx="10" fill="#090e1a" stroke="url(#card-border)" stroke-width="1.2"/>
+      <g transform="translate(18, 28)">
+        <text class="font-mono" font-size="14" font-weight="700" fill="#38bdf8">$</text>
+        <text x="18" class="font-mono" font-size="14" font-weight="500" fill="#f8fafc">npx permforge analyze</text>
+        <text x="212" class="font-mono" font-size="13" font-weight="400" fill="#64748b">--source force-app</text>
+      </g>
+      <!-- Quick Zero-Install Pill -->
+      <g transform="translate(416, 10)">
+        <rect width="96" height="26" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="48" y="17" class="font-mono" font-size="11" font-weight="600" fill="#94a3b8" text-anchor="middle">Zero-Install</text>
+      </g>
+    </g>
+
+    <!-- Metadata Badges Footer -->
+    <g transform="translate(0, 444)">
+      <text x="0" y="14" class="font-sans" font-size="12" font-weight="500" fill="#64748b">
+        Open Source (MIT) • github.com/visparashar/permforge • Node 18+ • TypeScript 5
+      </text>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT COLUMN: INTERACTIVE PRODUCT TERMINAL CARD ================= -->
+  <g transform="translate(642, 56)" filter="url(#shadow-card)">
+    <!-- Terminal Outer Frame -->
+    <rect width="570" height="526" rx="18" fill="url(#card-bg)" stroke="url(#card-border)" stroke-width="1.5"/>
+
+    <!-- Terminal Window Top Bar -->
+    <g transform="translate(0, 0)">
+      <path d="M 0 18 Q 0 0 18 0 L 552 0 Q 570 0 570 18 L 570 46 L 0 46 Z" fill="#090d16" fill-opacity="0.95"/>
+      <line x1="0" y1="46" x2="570" y2="46" stroke="#1e293b" stroke-width="1"/>
+
+      <!-- Window Control Dots -->
+      <circle cx="24" cy="23" r="6" fill="#ef4444" fill-opacity="0.85"/>
+      <circle cx="44" cy="23" r="6" fill="#f59e0b" fill-opacity="0.85"/>
+      <circle cx="64" cy="23" r="6" fill="#10b981" fill-opacity="0.85"/>
+
+      <!-- Terminal Title -->
+      <text x="285" y="28" class="font-mono" font-size="12" font-weight="600" fill="#94a3b8" text-anchor="middle">
+        permforge-verification-engine — bash
+      </text>
+
+      <!-- Parity Pass Badge -->
+      <g transform="translate(444, 11)">
+        <rect width="108" height="24" rx="12" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1"/>
+        <circle cx="12" cy="12" r="3.5" fill="#10b981"/>
+        <text x="22" y="16" class="font-mono" font-size="10.5" font-weight="700" fill="#34d399">100% PARITY</text>
+      </g>
+    </g>
+
+    <!-- Terminal Content Area -->
+    <g transform="translate(24, 68)">
+      <!-- Line 1: Command execution -->
+      <text x="0" y="14" class="font-mono" font-size="13" font-weight="700" fill="#38bdf8">❯</text>
+      <text x="18" y="14" class="font-mono" font-size="13" font-weight="600" fill="#f8fafc">permforge decompose \</text>
+      <text x="18" y="34" class="font-mono" font-size="12.5" font-weight="400" fill="#94a3b8">--profile Custom_Sales.profile-meta.xml --verify</text>
+
+      <!-- Execution Logs with checkmarks -->
+      <g transform="translate(0, 52)">
+        <text x="0" y="14" class="font-mono" font-size="12" fill="#10b981">✔</text>
+        <text x="16" y="14" class="font-mono" font-size="12" fill="#cbd5e1">Scanned Profile:</text>
+        <text x="135" y="14" class="font-mono" font-size="12" font-weight="600" fill="#38bdf8">148 Objects, 2,180 FLS, 42 Apex</text>
+      </g>
+
+      <g transform="translate(0, 74)">
+        <text x="0" y="14" class="font-mono" font-size="12" fill="#10b981">✔</text>
+        <text x="16" y="14" class="font-mono" font-size="12" fill="#cbd5e1">Cluster Analysis:</text>
+        <text x="145" y="14" class="font-mono" font-size="12" font-weight="600" fill="#818cf8">Identified Shared Core Baseline</text>
+      </g>
+
+      <g transform="translate(0, 96)">
+        <text x="0" y="14" class="font-mono" font-size="12" fill="#10b981">✔</text>
+        <text x="16" y="14" class="font-mono" font-size="12" fill="#cbd5e1">Modularized:</text>
+        <text x="110" y="14" class="font-mono" font-size="12" font-weight="600" fill="#c084fc">6 Domain PermSets + 1 Persona PSG</text>
+      </g>
+
+      <!-- Mathematical Parity Banner Box (Card within Card) -->
+      <g transform="translate(0, 126)">
+        <rect width="522" height="136" rx="12" fill="#080c14" stroke="url(#metric-border)" stroke-width="1.2"/>
+
+        <!-- Box Header -->
+        <g transform="translate(16, 14)">
+          <!-- Shield Icon -->
+          <g transform="translate(0, 2)">
+            <path d="M8 2L2 5V10C2 14.5 4.8 18.5 8 19.5C11.2 18.5 14 14.5 14 10V5L8 2Z" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.5"/>
+            <path d="M5.5 10L7.5 12L11 7" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <text x="24" y="16" class="font-sans" font-size="12.5" font-weight="700" fill="#f8fafc">
+            MATHEMATICAL DIFF &amp; PARITY ENGINE
+          </text>
+          <!-- Zero Loss Badge -->
+          <g transform="translate(400, 0)">
+            <rect width="90" height="22" rx="6" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1"/>
+            <text x="45" y="15" class="font-mono" font-size="10.5" font-weight="700" fill="#34d399" text-anchor="middle">ZERO LOSS</text>
+          </g>
+        </g>
+
+        <!-- Divider line -->
+        <line x1="16" y1="44" x2="506" y2="44" stroke="#1e293b" stroke-width="1"/>
+
+        <!-- Parity Table Details -->
+        <g transform="translate(16, 64)">
+          <text x="0" y="0" class="font-mono" font-size="11.5" fill="#94a3b8">Source Profile:</text>
+          <text x="135" y="0" class="font-mono" font-size="11.5" font-weight="600" fill="#f8fafc">148 Objs • 2,180 FLS • 42 Apex</text>
+        </g>
+        <g transform="translate(16, 85)">
+          <text x="0" y="0" class="font-mono" font-size="11.5" fill="#94a3b8">Combined PSGs:</text>
+          <text x="135" y="0" class="font-mono" font-size="11.5" font-weight="600" fill="#f8fafc">148 Objs • 2,180 FLS • 42 Apex</text>
+        </g>
+        <g transform="translate(16, 107)">
+          <text x="0" y="0" class="font-mono" font-size="11.5" fill="#94a3b8">Parity Status:</text>
+          <text x="135" y="0" class="font-mono" font-size="11.5" font-weight="700" fill="#34d399">100.0% MATCH (0 Dropped Permissions)</text>
+        </g>
+      </g>
+
+      <!-- AI / MCP Agent Prompt Integration Box -->
+      <g transform="translate(0, 274)">
+        <rect width="522" height="70" rx="10" fill="#111827" fill-opacity="0.85" stroke="#374151" stroke-width="1"/>
+        <g transform="translate(16, 18)">
+          <!-- AI Chip Icon -->
+          <circle cx="10" cy="10" r="10" fill="#6366f1" fill-opacity="0.2"/>
+          <path d="M7 9C7 7.9 7.9 7 9 7H11C12.1 7 13 7.9 13 9V11C13 12.1 12.1 13 11 13H9C7.9 13 7 12.1 7 11V9Z" stroke="#818cf8" stroke-width="1.4"/>
+          <circle cx="8.5" cy="9.5" r="0.8" fill="#ffffff"/>
+          <circle cx="11.5" cy="9.5" r="0.8" fill="#ffffff"/>
+          
+          <text x="28" y="14" class="font-sans" font-size="12" font-weight="700" fill="#c084fc">MCP Server for AI Coding Agents</text>
+          <text x="248" y="14" class="font-mono" font-size="10.5" fill="#94a3b8">Claude • Cursor • Antigravity</text>
+        </g>
+        <g transform="translate(16, 50)">
+          <text x="0" y="0" class="font-mono" font-size="11" fill="#64748b">tools: permforge_analyze, permforge_decompose, permforge_verify</text>
+        </g>
+      </g>
+
+      <!-- 3 Key Metric Stats Bottom Strip -->
+      <g transform="translate(0, 356)">
+        <!-- Stat 1 -->
+        <rect width="166" height="68" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="83" y="32" class="font-sans" font-size="22" font-weight="800" fill="#10b981" text-anchor="middle">100%</text>
+        <text x="83" y="52" class="font-mono" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">PARITY GUARANTEE</text>
+
+        <!-- Stat 2 -->
+        <rect x="178" width="166" height="68" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="261" y="32" class="font-sans" font-size="22" font-weight="800" fill="#38bdf8" text-anchor="middle">0 Delta</text>
+        <text x="261" y="52" class="font-mono" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">ZERO REGRESSIONS</text>
+
+        <!-- Stat 3 -->
+        <rect x="356" width="166" height="68" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="439" y="32" class="font-sans" font-size="22" font-weight="800" fill="#c084fc" text-anchor="middle">Instant</text>
+        <text x="439" y="52" class="font-mono" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">CLEAN ARCHITECTURE</text>
+      </g>
+    </g>
+  </g>
+</svg>

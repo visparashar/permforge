@@ -23,3 +23,5 @@ Thumbs.db
 # Temp & local test outputs
 tmp/
 output/
+scratch/
+*.tgz
