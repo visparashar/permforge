@@ -74,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to Open VSX Registry
-        if: inputs.publish_openvsx != false
+        if: github.event_name != 'workflow_dispatch' || inputs.publish_openvsx != false
         run: |
           if [ -n "$OVSX_PAT" ]; then
             echo "Publishing to Open VSX Registry..."
