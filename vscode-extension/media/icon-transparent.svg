@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <!-- Brand Vibrant Gradient -->
+    <linearGradient id="pf-brand-trans" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="48%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <!-- Sparkle Glow Filter -->
+    <filter id="trans-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Centered Shield Emblem -->
+  <g transform="translate(256, 252) scale(8.5) translate(-24, -25)">
+    <!-- Background Shield Outline -->
+    <path d="M24 4L7 11V22C7 33.1 14.3 43.4 24 46C33.7 43.4 41 33.1 41 22V11L24 4Z" 
+          fill="url(#pf-brand-trans)" fill-opacity="0.22" stroke="url(#pf-brand-trans)" stroke-width="2.6" stroke-linejoin="round"/>
+
+    <!-- Forge Anvil / Core Motif -->
+    <path d="M16 19H32L30 25H27V31H21V25H18L16 19Z" fill="url(#pf-brand-trans)"/>
+
+    <!-- Security Lock Loop / Parity Check -->
+    <path d="M20 18V15C20 12.8 21.8 11 24 11C26.2 11 28 12.8 28 15V18" 
+          stroke="url(#pf-brand-trans)" stroke-width="2.6" stroke-linecap="round"/>
+
+    <!-- Core Center White Sparkle Node with Glow -->
+    <circle cx="24" cy="24" r="2.3" fill="#ffffff" filter="url(#trans-glow)"/>
+
+    <!-- Parity Check Node Dots -->
+    <circle cx="13" cy="22" r="1.7" fill="#38bdf8"/>
+    <circle cx="35" cy="22" r="1.7" fill="#c084fc"/>
+    <circle cx="24" cy="38" r="1.7" fill="#818cf8"/>
+  </g>
+</svg>

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-10-14
+
+### Added
+
+- **Direct Live Org Connectivity (`--target-org`)**: Connects directly to authenticated Salesforce orgs via `sf`/`sfdx` CLI auth cache or environment variables (`SF_ACCESS_TOKEN`, `SF_INSTANCE_URL`), chunks Metadata API calls (&le; 10) to comply with Salesforce API limits, and supports live deployment back to the org.
+- **`permforge retrieve` CLI Command**: Discovers remote profiles via SOQL and downloads Metadata API XMLs directly into your local project workspace (`--list`, `--all-custom`, `-p/--profiles`).
+- **In-Cloud Pipeline & Direct Deploy**: `permforge pipeline` and `permforge analyze` now support `--target-org <alias>` and `--deploy` for zero-friction cloud migrations.
+- **Visual Studio Code Extension (`vscode-permforge`)**:
+  - **Interactive Parity Matrix & Access Heatmap**: Color-coded side-by-side CRUDVM pill badges (`C`, `R`, `E`, `D`, `V`, `M`) and FLS field comparison with real-time search, filters, and mathematical parity proof.
+  - **Live Org Cloud Migration Tab**: Select an authenticated org from the status bar or dropdown, inspect remote profiles, retrieve to workspace with 1 click, or decompose and deploy directly back to the live org.
+  - **Enterprise Pipeline Runner**: Visual 6-stage stepper (Audit &rarr; Clustering &rarr; Decomposition &rarr; Parity Proof &rarr; UAP &rarr; Report) with live streaming console logs.
+  - **Sidebar Profile Explorer**: Visual tree view of discovered profiles with complexity debt gauges (`🟢 Low`, `🟡 Med`, `🔴 High`), object counts, and high-risk grant alerts.
+- **Official GitHub Action & CI/CD Gate Bot (`action.yml`)**:
+  - Automatically runs on pull requests (`uses: visparashar/permforge@main`) to enforce Salesforce's 2026 Profile Permissions retirement policy.
+  - **Permission Creep Detection**: Inspects git diffs and fails PRs that attempt to add new permissions to legacy profiles.
+  - **100% Parity Gate**: Blocks PRs if mathematical access parity drifts below 100.0%.
+  - **Rich Step Summary & PR Comments**: Posts interactive audit tables with complexity scores and high-risk security alerts directly onto GitHub PRs.
+- **12 Native Model Context Protocol (MCP) Tools**: Added `permforge_list_org_profiles` and `permforge_retrieve_profiles` tools to Claude Desktop, Cursor, Antigravity, and Cline.
+- **Universal Node Compatibility**: Locked `undici` to 6.x via npm overrides for full backwards compatibility across Node 18.x, 20.x, 22.x, and 24.x.
+- **Expanded Test Suite**: 35 automated tests across 17 test suites with 100% pass rate.
+
+---
+
 ## [1.2.0] - 2026-10-14
 
 ### Added

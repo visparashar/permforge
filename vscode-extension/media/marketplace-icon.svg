@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="tile-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#090d18"/>
+      <stop offset="100%" stop-color="#060911"/>
+    </linearGradient>
+
+    <!-- Glass Border Gradient -->
+    <linearGradient id="tile-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.55"/>
+    </linearGradient>
+
+    <!-- Brand Vibrant Gradient -->
+    <linearGradient id="pf-brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="48%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <!-- Glow Radial Lights -->
+    <radialGradient id="shield-glow" cx="50%" cy="48%" r="48%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#06b6d4" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Sparkle Glow Filter -->
+    <filter id="core-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="tile-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.65"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#6366f1" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Outer Drop Shadow and Squircle Tile -->
+  <rect x="20" y="20" width="472" height="472" rx="108" fill="url(#tile-bg)" stroke="url(#tile-border)" stroke-width="3" filter="url(#tile-shadow)"/>
+
+  <!-- Inner Ambient Backlight Glow -->
+  <circle cx="256" cy="256" r="210" fill="url(#shield-glow)"/>
+
+  <!-- Subtle Blueprint Tech Grid in Tile -->
+  <g opacity="0.08" stroke="#ffffff" stroke-width="1.2">
+    <line x1="20" y1="174" x2="492" y2="174"/>
+    <line x1="20" y1="256" x2="492" y2="256"/>
+    <line x1="20" y1="338" x2="492" y2="338"/>
+    <line x1="174" y1="20" x2="174" y2="492"/>
+    <line x1="256" y1="20" x2="256" y2="492"/>
+    <line x1="338" y1="20" x2="338" y2="492"/>
+  </g>
+
+  <!-- Main Shield Emblem (Centered & Scaled from original 48x48) -->
+  <g transform="translate(256, 252) scale(7.4) translate(-24, -25)">
+
+    <!-- Background Shield Outline -->
+    <path d="M24 4L7 11V22C7 33.1 14.3 43.4 24 46C33.7 43.4 41 33.1 41 22V11L24 4Z" 
+          fill="url(#pf-brand)" fill-opacity="0.22" stroke="url(#pf-brand)" stroke-width="2.6" stroke-linejoin="round"/>
+
+    <!-- Forge Anvil / Core Motif -->
+    <path d="M16 19H32L30 25H27V31H21V25H18L16 19Z" fill="url(#pf-brand)"/>
+
+    <!-- Security Lock Loop / Parity Check -->
+    <path d="M20 18V15C20 12.8 21.8 11 24 11C26.2 11 28 12.8 28 15V18" 
+          stroke="url(#pf-brand)" stroke-width="2.6" stroke-linecap="round"/>
+
+    <!-- Core Center White Sparkle Node with Glow -->
+    <circle cx="24" cy="24" r="2.3" fill="#ffffff" filter="url(#core-glow)"/>
+
+    <!-- Parity Check Node Dots -->
+    <circle cx="13" cy="22" r="1.7" fill="#38bdf8"/>
+    <circle cx="35" cy="22" r="1.7" fill="#c084fc"/>
+    <circle cx="24" cy="38" r="1.7" fill="#818cf8"/>
+  </g>
+</svg>

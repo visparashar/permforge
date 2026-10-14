@@ -1,6 +1,6 @@
 {
   "name": "permforge",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "description": "Intelligent Salesforce Profile to Permission Set & Permission Set Group migration and modularization toolkit.",
   "author": "Vishal Parashar",

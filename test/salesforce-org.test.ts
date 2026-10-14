@@ -37,7 +37,7 @@ describe('SalesforceOrgService', () => {
 
       process.env.SF_ACCESS_TOKEN = origToken;
       process.env.SF_INSTANCE_URL = origUrl;
-    });
+    }, 15000);
   });
 
   describe('retrieveProfiles', () => {

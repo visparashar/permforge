@@ -1,29 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
   <defs>
-    <linearGradient id="pf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4" />
-      <stop offset="50%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#a855f7" />
+    <linearGradient id="pf-act-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
     </linearGradient>
-    <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#818cf8" stop-opacity="0.1"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
   </defs>
-  <!-- Background Shield Outline -->
-  <path d="M24 4L7 11V22C7 33.1 14.3 43.4 24 46C33.7 43.4 41 33.1 41 22V11L24 4Z" 
-        fill="url(#pf-grad)" fill-opacity="0.15" stroke="url(#pf-grad)" stroke-width="2.5" stroke-linejoin="round"/>
-  <!-- Forge Anvil / Core Motif -->
-  <path d="M16 19H32L30 25H27V31H21V25H18L16 19Z" fill="url(#pf-grad)"/>
-  <!-- Security Lock Loop / Parity Check -->
-  <path d="M20 18V15C20 12.8 21.8 11 24 11C26.2 11 28 12.8 28 15V18" stroke="url(#pf-grad)" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Parity Sparkle / Node Dots -->
-  <circle cx="24" cy="24" r="2" fill="#ffffff" filter="url(#glow)"/>
-  <circle cx="13" cy="22" r="1.5" fill="#38bdf8" />
-  <circle cx="35" cy="22" r="1.5" fill="#c084fc" />
-  <circle cx="24" cy="38" r="1.5" fill="#818cf8" />
+  <!-- Shield Outline -->
+  <path d="M12 2L3 5.5V11C3 16.5 6.8 21.5 12 23C17.2 21.5 21 16.5 21 11V5.5L12 2Z" 
+        stroke="url(#pf-act-grad)" stroke-width="1.8" stroke-linejoin="round" fill="url(#pf-act-grad)" fill-opacity="0.18"/>
+  <!-- Anvil Core Motif -->
+  <path d="M8 9.5H16L15 13H13.5V16.5H10.5V13H9L8 9.5Z" fill="url(#pf-act-grad)"/>
+  <!-- Lock loop -->
+  <path d="M10 9V7.5C10 6.4 10.9 5.5 12 5.5C13.1 5.5 14 6.4 14 7.5V9" stroke="url(#pf-act-grad)" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Sparkle dots -->
+  <circle cx="12" cy="12" r="1.2" fill="#ffffff"/>
+  <circle cx="6.5" cy="11" r="1" fill="#38bdf8"/>
+  <circle cx="17.5" cy="11" r="1" fill="#c084fc"/>
+  <circle cx="12" cy="19" r="1" fill="#818cf8"/>
 </svg>
