@@ -16,7 +16,7 @@
     "migration",
     "devops"
   ],
-  "homepage": "https://github.com/visparashar/permforge#readme",
+  "homepage": "https://visparashar.github.io/permforge",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/visparashar/permforge.git"

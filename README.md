@@ -1,12 +1,15 @@
 # 🛡️ PermForge
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Documentation](https://img.shields.io/badge/Documentation-GitHub%20Pages-blue.svg)](https://visparashar.github.io/permforge/)
 [![Node.js CI](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-20%2F20%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
-[![Salesforce DX](https://img.shields.io/badge/Salesforce-DX-00A1E0.svg)](https://developer.salesforce.com/)
+[![Tests](https://img.shields.io/badge/Tests-23%2F23%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
+[![MCP Native](https://img.shields.io/badge/MCP-Compatible-9cf.svg)](https://modelcontextprotocol.io/)
 
 > **The Complete, Open-Source Salesforce Profile to Permission Set & Permission Set Group Migration Platform.**
+>
+> 🌐 **Live Website & Documentation:** [https://visparashar.github.io/permforge/](https://visparashar.github.io/permforge/)
 
 ---
 

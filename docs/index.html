@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PermForge — Salesforce Profile-to-Permission Set Migration Engine & MCP Server</title>
+  <meta name="description" content="Open-source migration engine for Salesforce profiles. Automate decomposition into modular Permission Sets & PSGs with 100% mathematical parity verification, cross-profile clustering, and native MCP support for AI coding agents.">
+  <meta name="keywords" content="Salesforce, Profile Migration, Permission Sets, Permission Set Groups, MCP, Model Context Protocol, DevSecOps, SFDX, Parity Verification">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://visparashar.github.io/permforge/">
+  <meta property="og:title" content="PermForge — Salesforce Profile-to-Permission Set Migration Engine">
+  <meta property="og:description" content="Automate decomposition into modular Permission Sets & PSGs with 100% mathematical parity verification, cross-profile clustering, and native MCP support.">
+  <meta property="og:image" content="https://visparashar.github.io/permforge/assets/logo.svg">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="ambient-grid"></div>
+
+  <!-- Site Navigation -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="#" class="brand">
+        <img src="assets/logo.svg" alt="PermForge Logo">
+        <span>PermForge</span>
+        <span class="badge">v1.2.0</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#lifecycle">Lifecycle</a>
+        <a href="#commands">CLI Reference</a>
+        <a href="#mcp">MCP Agent Tools</a>
+        <a href="#comparison">Comparison</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="https://github.com/visparashar/permforge" target="_blank" rel="noopener noreferrer" class="btn-github">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>Star on GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-pill">
+          <span class="dot"></span>
+          <span>Salesforce Profile Retirement Ready &bull; Native MCP Engine</span>
+        </div>
+        <h1>
+          The Open-Source Migration Engine for <span class="gradient-text">Salesforce Profiles</span>
+        </h1>
+        <p class="lead">
+          Decompose legacy monolith profiles into modular Permission Sets & Permission Set Groups with 
+          <strong>100% mathematical parity verification</strong>, cross-profile clustering, automated muting, and native Model Context Protocol (MCP) server for AI coding agents.
+        </p>
+
+        <div class="hero-cta">
+          <div class="quick-install">
+            <code>npx permforge analyze --dir force-app/main/default/profiles</code>
+            <button class="copy-btn" data-copy="npx permforge analyze --dir force-app/main/default/profiles" title="Copy command">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <div class="hero-buttons">
+            <a href="#commands" class="btn-primary">Explore CLI Commands &rarr;</a>
+            <a href="#mcp" class="btn-secondary">Setup AI Agent (MCP)</a>
+          </div>
+        </div>
+
+        <!-- Key Metrics Strip -->
+        <div class="stat-strip">
+          <div class="stat-card">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Mathematical Parity Proof</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">13</span>
+            <span class="stat-label">Production CLI Commands</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">9</span>
+            <span class="stat-label">Native MCP Tools for AI Agents</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Org API Runtime Dependencies</span>
+          </div>
+        </div>
+
+        <!-- Terminal Showcase -->
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot-red"></div>
+              <div class="dot-yellow"></div>
+              <div class="dot-green"></div>
+            </div>
+            <div class="terminal-tabs">
+              <button class="terminal-tab active" data-pane="term-analyze">1. analyze</button>
+              <button class="terminal-tab" data-pane="term-cluster">2. cluster</button>
+              <button class="terminal-tab" data-pane="term-decompose">3. decompose</button>
+              <button class="terminal-tab" data-pane="term-verify">4. verify</button>
+              <button class="terminal-tab" data-pane="term-mcp">5. mcp server</button>
+            </div>
+            <div class="terminal-actions">
+              <button class="copy-btn-sm" data-copy="npx permforge analyze" title="Copy current command">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div class="terminal-body">
+            <!-- Pane 1: Analyze -->
+            <div class="term-pane active" id="term-analyze">
+              <p><span class="term-prompt">&gt;</span> <span class="term-cmd">permforge analyze -d force-app/main/default/profiles</span></p>
+              <br>
+              <p><span class="term-cyan">&#9432; PermForge Profile Analyzer</span></p>
+              <p><span class="term-dim">Scanning 3 profile metadata files...</span></p>
+              <br>
+              <p>Profile: <span class="term-purple">Custom: Sales Representative</span></p>
+              <p>&nbsp;&nbsp;&bull; Objects: <span class="term-green">42</span> (Account, Contact, Opportunity, Lead, Quote...)</p>
+              <p>&nbsp;&nbsp;&bull; Field Permissions (FLS): <span class="term-green">386</span></p>
+              <p>&nbsp;&nbsp;&bull; Apex Classes: <span class="term-green">14</span> | Visualforce Pages: <span class="term-green">6</span></p>
+              <p>&nbsp;&nbsp;&bull; Custom Permissions: <span class="term-green">3</span></p>
+              <p>&nbsp;&nbsp;&bull; High-Risk Flags: <span class="term-rose">ModifyAllData (FALSE)</span>, <span class="term-amber">ViewAllForecasts (TRUE)</span></p>
+              <p>&nbsp;&nbsp;&bull; Complexity Score: <span class="term-amber">64 / 100 [Moderate Tech Debt]</span></p>
+              <br>
+              <p><span class="term-green">&#10004; Analysis complete. Recommendation: Safe for automated decomposition.</span></p>
+            </div>
+
+            <!-- Pane 2: Cluster -->
+            <div class="term-pane" id="term-cluster">
+              <p><span class="term-prompt">&gt;</span> <span class="term-cmd">permforge cluster -d force-app/main/default/profiles -t 0.70</span></p>
+              <br>
+              <p><span class="term-cyan">&#9432; PermForge Cross-Profile Clustering Engine</span></p>
+              <p><span class="term-dim">Comparing permission sets across 5 profiles using Jaccard Similarity index...</span></p>
+              <br>
+              <p><span class="term-green">&#10004; Identified Shared Baseline:</span> <span class="term-purple">Standard_Employee_Baseline</span></p>
+              <p>&nbsp;&nbsp;&bull; Common Object Grants: <span class="term-cyan">Account (Read), Contact (Read), Task (CRUD), Event (CRUD)</span></p>
+              <p>&nbsp;&nbsp;&bull; Shared FLS Grants: <span class="term-cyan">184 common fields</span></p>
+              <br>
+              <p><span class="term-amber">&#9656; Isolated Role Deltas:</span></p>
+              <p>&nbsp;&nbsp;&bull; Sales_Ops_Delta: <span class="term-dim">+ Opportunity Delete, Transfer Leads</span></p>
+              <p>&nbsp;&nbsp;&bull; Service_Rep_Delta: <span class="term-dim">+ Case Edit, Knowledge Access</span></p>
+              <br>
+              <p><span class="term-green">&#10004; Generated 1 baseline set + 4 lean delta sets in output/permsets.</span></p>
+            </div>
+
+            <!-- Pane 3: Decompose -->
+            <div class="term-pane" id="term-decompose">
+              <p><span class="term-prompt">&gt;</span> <span class="term-cmd">permforge decompose -p "Custom: Sales Representative.profile-meta.xml" -o force-app/main/default</span></p>
+              <br>
+              <p><span class="term-cyan">&#9432; PermForge Modular Decomposition</span></p>
+              <p><span class="term-dim">Decomposing monolithic profile into single-responsibility artifacts...</span></p>
+              <br>
+              <p><span class="term-green">&#10004; Created:</span> permissionsets/Sales_Account_Contact_Access.permissionset-meta.xml</p>
+              <p><span class="term-green">&#10004; Created:</span> permissionsets/Sales_Opportunity_Core_Access.permissionset-meta.xml</p>
+              <p><span class="term-green">&#10004; Created:</span> permissionsets/Sales_Apex_Class_Executions.permissionset-meta.xml</p>
+              <p><span class="term-green">&#10004; Created:</span> permissionsetgroups/Sales_Representative_Persona.permissionsetgroup-meta.xml</p>
+              <br>
+              <p><span class="term-green">&#10004; Decomposition complete! 1 PSG and 4 domain Permission Sets created.</span></p>
+            </div>
+
+            <!-- Pane 4: Verify -->
+            <div class="term-pane" id="term-verify">
+              <p><span class="term-prompt">&gt;</span> <span class="term-cmd">permforge verify -p "Custom: Sales Representative.profile-meta.xml" -g force-app/main/default/permissionsetgroups/Sales_Representative_Persona.permissionsetgroup-meta.xml</span></p>
+              <br>
+              <p><span class="term-cyan">&#9432; PermForge Mathematical Parity Engine</span></p>
+              <p><span class="term-dim">Auditing 42 objects, 386 FLS, 14 Apex classes, 6 VF pages bit-for-bit...</span></p>
+              <br>
+              <p>&nbsp;&nbsp;&bull; Objects Matched: <span class="term-green">42 / 42 (100.0%)</span></p>
+              <p>&nbsp;&nbsp;&bull; FLS Matched: <span class="term-green">386 / 386 (100.0%)</span></p>
+              <p>&nbsp;&nbsp;&bull; Missing Grants: <span class="term-green">0</span></p>
+              <p>&nbsp;&nbsp;&bull; Unexpected Extra Grants: <span class="term-green">0</span></p>
+              <br>
+              <p><span class="term-green">&#10004; VERIFICATION SUCCESS: 100% ACCESS PARITY PROVEN. Zero regression risk.</span></p>
+            </div>
+
+            <!-- Pane 5: MCP -->
+            <div class="term-pane" id="term-mcp">
+              <p><span class="term-prompt">&gt;</span> <span class="term-cmd">permforge mcp</span></p>
+              <br>
+              <p><span class="term-cyan">&#9432; PermForge Model Context Protocol (MCP) Server Active</span></p>
+              <p><span class="term-dim">Protocol: JSON-RPC 2.0 (stdio) &bull; SDK: @modelcontextprotocol/sdk v1.6.1</span></p>
+              <br>
+              <p><span class="term-purple">Connected AI Coding Agents:</span> Claude Desktop / Cursor / Antigravity / Cline</p>
+              <p><span class="term-green">Exposed Agent Tools (9):</span></p>
+              <p>&nbsp;&nbsp;[1] analyze_profiles &nbsp;&nbsp;&nbsp;&nbsp; [2] cluster_profiles &nbsp;&nbsp; [3] decompose_profile</p>
+              <p>&nbsp;&nbsp;[4] verify_parity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [5] strip_profile &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [6] generate_uap</p>
+              <p>&nbsp;&nbsp;[7] generate_muting &nbsp;&nbsp;&nbsp;&nbsp; [8] lint_profiles &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [9] generate_migration_plan</p>
+              <br>
+              <p><span class="term-dim">[INFO] Listening for AI client requests on stdio...</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Features Grid -->
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Enterprise Capabilities</span>
+          <h2 class="section-title">Built for Complex Salesforce Architectures</h2>
+          <p class="section-subtitle">
+            Everything required to navigate Salesforce's upcoming Profile Retirement without human error, spreadsheets, or access disruptions.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature 1 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-blue">&#9670;</div>
+            <h3 class="feature-title">Zero-Loss Decomposition</h3>
+            <p class="feature-description">
+              Intelligently decomposes monolithic profiles into modular, single-responsibility Permission Sets grouped by business domain (Object access, FLS, Apex classes, custom permissions).
+            </p>
+            <span class="feature-badge">Automated Slicing</span>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-indigo">&#10004;</div>
+            <h3 class="feature-title">Mathematical Parity Proof</h3>
+            <p class="feature-description">
+              Verifies decomposed Permission Set Groups against the original Profile bit-for-bit. Guarantees 0 missing grants and 0 unexpected privileges before pushing to production.
+            </p>
+            <span class="feature-badge">Zero Regression</span>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-purple">&#9881;</div>
+            <h3 class="feature-title">Cross-Profile Clustering</h3>
+            <p class="feature-description">
+              Leverages Jaccard similarity algorithms across your entire repository to automatically extract a shared <code>Standard_Employee_Baseline</code> and isolate role-specific delta sets.
+            </p>
+            <span class="feature-badge">DRY Security Model</span>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-green">&#128737;</div>
+            <h3 class="feature-title">Muting PSG Generator</h3>
+            <p class="feature-description">
+              Generate native <code>.mutingpermissionset-meta.xml</code> to handle subtractive permissions inside Permission Set Groups without fragmenting your security architecture.
+            </p>
+            <span class="feature-badge">Subtractive Control</span>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-amber">&#9889;</div>
+            <h3 class="feature-title">Profile Stripper &amp; Sanitizer</h3>
+            <p class="feature-description">
+              Strips all migratable permissions from target profiles while preserving non-migratable essentials: Login IP Ranges, Login Hours, Page Layout Assignments, and Desktop Integrations.
+            </p>
+            <span class="feature-badge">Non-Destructive</span>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-rose">&#129302;</div>
+            <h3 class="feature-title">Native MCP Server</h3>
+            <p class="feature-description">
+              Built-in Model Context Protocol server exposing 9 structured tools. Connect Claude Desktop, Cursor, Antigravity, or Cline to autonomously audit, decompose, and verify your repo.
+            </p>
+            <span class="feature-badge">AI Agent Ready</span>
+          </div>
+
+          <!-- Feature 7 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-blue">&#128203;</div>
+            <h3 class="feature-title">User Access Policies (UAP)</h3>
+            <p class="feature-description">
+              Generates native Salesforce User Access Policies (<code>.userAccessPolicy-meta.xml</code>) to automate real-time and scheduled PSG assignments based on user attributes.
+            </p>
+            <span class="feature-badge">Automated Provisioning</span>
+          </div>
+
+          <!-- Feature 8 -->
+          <div class="feature-card">
+            <div class="feature-icon-wrapper icon-green">&#128640;</div>
+            <h3 class="feature-title">CI/CD Pre-Commit Quality Gate</h3>
+            <p class="feature-description">
+              Prevent profile security creep with <code>permforge lint</code>. Generates GitHub Actions inline annotations and blocks pull requests that introduce legacy profile permissions.
+            </p>
+            <span class="feature-badge">DevOps Enforcement</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Migration Lifecycle Walkthrough -->
+    <section id="lifecycle">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">End-to-End Pipeline</span>
+          <h2 class="section-title">The 4-Phase Migration Methodology</h2>
+          <p class="section-subtitle">
+            A battle-tested workflow designed to move enterprise Salesforce orgs to the Principle of Least Privilege.
+          </p>
+        </div>
+
+        <div class="flow-container">
+          <!-- Step 1 -->
+          <div class="flow-step">
+            <span class="step-badge">Phase 01</span>
+            <h3 class="step-title">Scan &amp; Audit</h3>
+            <p class="step-desc">
+              Audit complexity scores, inventory SObjects and FLS, detect high-risk system grants, and export an executive HTML dashboard.
+            </p>
+            <code class="step-cmd">permforge analyze &amp;&amp; report</code>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="flow-step">
+            <span class="step-badge">Phase 02</span>
+            <h3 class="step-title">Cluster &amp; Decompose</h3>
+            <p class="step-desc">
+              Extract shared baseline permissions across all profiles and slice role-specific grants into modular domain Permission Sets and PSGs.
+            </p>
+            <code class="step-cmd">permforge cluster &amp;&amp; decompose</code>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="flow-step">
+            <span class="step-badge">Phase 03</span>
+            <h3 class="step-title">Parity Verification</h3>
+            <p class="step-desc">
+              Audit the generated sets against original profiles bit-for-bit. Math proof guarantees 100% equivalence before touching production.
+            </p>
+            <code class="step-cmd">permforge verify -p &lt;prof&gt; -g &lt;psg&gt;</code>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="flow-step">
+            <span class="step-badge">Phase 04</span>
+            <h3 class="step-title">Sanitize &amp; Deploy</h3>
+            <p class="step-desc">
+              Strip legacy permissions from profiles, generate User Access Policies for auto-assignment, and produce rollback scripts.
+            </p>
+            <code class="step-cmd">permforge strip &amp;&amp; uap &amp;&amp; plan</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive CLI Cheatsheet / Reference -->
+    <section id="commands">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Command Line Interface</span>
+          <h2 class="section-title">Complete CLI Reference</h2>
+          <p class="section-subtitle">
+            13 purpose-built commands covering discovery, decomposition, verification, and automated assignment.
+          </p>
+        </div>
+
+        <div class="cli-filter-bar">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="cliSearch" placeholder="Filter commands (e.g. verify, cluster, mcp)...">
+          </div>
+          <div class="cli-tags">
+            <button class="tag-btn active" data-filter="all">All</button>
+            <button class="tag-btn" data-filter="audit">Audit &amp; Discovery</button>
+            <button class="tag-btn" data-filter="migration">Migration &amp; Modularization</button>
+            <button class="tag-btn" data-filter="validation">Verification &amp; CI/CD</button>
+            <button class="tag-btn" data-filter="agent">AI &amp; Automation</button>
+          </div>
+        </div>
+
+        <div class="cli-grid" id="cliGrid">
+          <!-- 1: analyze -->
+          <div class="cli-card" data-name="analyze" data-tag="audit">
+            <div class="cli-head">
+              <span class="cli-name">permforge analyze</span>
+              <span class="cli-badge">Audit</span>
+            </div>
+            <p class="cli-desc">Inventories profile SObject & FLS permissions, computes 0-100 complexity debt score, and flags high-risk permissions.</p>
+            <div class="cli-snippet">
+              <code>permforge analyze -d force-app/main/default/profiles</code>
+              <button class="copy-btn-sm" data-copy="permforge analyze -d force-app/main/default/profiles" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 2: cluster -->
+          <div class="cli-card" data-name="cluster" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge cluster</span>
+              <span class="cli-badge">Migration</span>
+            </div>
+            <p class="cli-desc">Cross-profile similarity analyzer. Extracts shared Standard_Employee_Baseline and role-specific delta sets.</p>
+            <div class="cli-snippet">
+              <code>permforge cluster -d force-app/.../profiles -t 0.70</code>
+              <button class="copy-btn-sm" data-copy="permforge cluster -d force-app/main/default/profiles -t 0.70" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 3: decompose -->
+          <div class="cli-card" data-name="decompose" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge decompose</span>
+              <span class="cli-badge">Migration</span>
+            </div>
+            <p class="cli-desc">Modularizes a profile into single-responsibility domain Permission Sets and a persona Permission Set Group.</p>
+            <div class="cli-snippet">
+              <code>permforge decompose -p CustomSales.profile-meta.xml</code>
+              <button class="copy-btn-sm" data-copy="permforge decompose -p CustomSales.profile-meta.xml" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 4: verify -->
+          <div class="cli-card" data-name="verify" data-tag="validation">
+            <div class="cli-head">
+              <span class="cli-name">permforge verify</span>
+              <span class="cli-badge">Validation</span>
+            </div>
+            <p class="cli-desc">Mathematically verifies 100% access parity between a source Profile and a target Permission Set Group.</p>
+            <div class="cli-snippet">
+              <code>permforge verify -p CustomSales.profile -g Sales.psg</code>
+              <button class="copy-btn-sm" data-copy="permforge verify -p CustomSales.profile -g Sales.psg" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 5: strip -->
+          <div class="cli-card" data-name="strip clean" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge strip</span>
+              <span class="cli-badge">Sanitize</span>
+            </div>
+            <p class="cli-desc">Strips migratable permissions from profiles while keeping layout assignments, login hours, and IP ranges intact.</p>
+            <div class="cli-snippet">
+              <code>permforge strip -p CustomSales.profile -o cleaned/</code>
+              <button class="copy-btn-sm" data-copy="permforge strip -p CustomSales.profile -o cleaned/" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 6: uap -->
+          <div class="cli-card" data-name="uap" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge uap</span>
+              <span class="cli-badge">Automation</span>
+            </div>
+            <p class="cli-desc">Generates declarative User Access Policies (.userAccessPolicy-meta.xml) to automate PSG assignment on user record changes.</p>
+            <div class="cli-snippet">
+              <code>permforge uap -n Assign_Sales -g Sales_Rep_PSG</code>
+              <button class="copy-btn-sm" data-copy="permforge uap -n Assign_Sales -g Sales_Rep_PSG" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 7: mute -->
+          <div class="cli-card" data-name="mute" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge mute</span>
+              <span class="cli-badge">Subtractive</span>
+            </div>
+            <p class="cli-desc">Generates Muting Permission Sets (.mutingpermissionset-meta.xml) for subtractive permissions within PSGs.</p>
+            <div class="cli-snippet">
+              <code>permforge mute -n Mute_Delete -s Account:delete</code>
+              <button class="copy-btn-sm" data-copy="permforge mute -n Mute_Delete -s Account:delete" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 8: lint -->
+          <div class="cli-card" data-name="lint" data-tag="validation">
+            <div class="cli-head">
+              <span class="cli-name">permforge lint</span>
+              <span class="cli-badge">CI/CD</span>
+            </div>
+            <p class="cli-desc">Pre-commit and pull request linter. Emits GitHub Actions annotations to prevent profile regression.</p>
+            <div class="cli-snippet">
+              <code>permforge lint -d force-app/.../profiles --strict</code>
+              <button class="copy-btn-sm" data-copy="permforge lint -d force-app/main/default/profiles --strict" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 9: graph -->
+          <div class="cli-card" data-name="graph" data-tag="audit">
+            <div class="cli-head">
+              <span class="cli-name">permforge graph</span>
+              <span class="cli-badge">Topology</span>
+            </div>
+            <p class="cli-desc">Visualizes PSG inheritance hierarchy and object grant dependencies as Mermaid diagrams or ASCII trees.</p>
+            <div class="cli-snippet">
+              <code>permforge graph -g Sales_Rep_PSG.permissionsetgroup</code>
+              <button class="copy-btn-sm" data-copy="permforge graph -g Sales_Rep_PSG.permissionsetgroup" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 10: report -->
+          <div class="cli-card" data-name="report" data-tag="audit">
+            <div class="cli-head">
+              <span class="cli-name">permforge report</span>
+              <span class="cli-badge">Reporting</span>
+            </div>
+            <p class="cli-desc">Generates a self-contained interactive HTML audit report with security debt charts, risk tables, and export options.</p>
+            <div class="cli-snippet">
+              <code>permforge report -d force-app/ -o audit.html</code>
+              <button class="copy-btn-sm" data-copy="permforge report -d force-app/ -o audit.html" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 11: plan -->
+          <div class="cli-card" data-name="plan" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge plan</span>
+              <span class="cli-badge">Execution</span>
+            </div>
+            <p class="cli-desc">Generates complete migration runbook: user assignment CSVs, rollback scripts, and SF CLI deploy sequences.</p>
+            <div class="cli-snippet">
+              <code>permforge plan -p CustomSales.profile -o migration/</code>
+              <button class="copy-btn-sm" data-copy="permforge plan -p CustomSales.profile -o migration/" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 12: wizard -->
+          <div class="cli-card" data-name="wizard" data-tag="migration">
+            <div class="cli-head">
+              <span class="cli-name">permforge wizard</span>
+              <span class="cli-badge">Interactive</span>
+            </div>
+            <p class="cli-desc">Interactive terminal wizard that guides admins step-by-step through discovery, clustering, decomposition, and parity checks.</p>
+            <div class="cli-snippet">
+              <code>permforge wizard</code>
+              <button class="copy-btn-sm" data-copy="permforge wizard" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+
+          <!-- 13: mcp -->
+          <div class="cli-card" data-name="mcp" data-tag="agent">
+            <div class="cli-head">
+              <span class="cli-name">permforge mcp</span>
+              <span class="cli-badge">AI Agent</span>
+            </div>
+            <p class="cli-desc">Starts the native Model Context Protocol (MCP) server over stdio for autonomous AI coding agents.</p>
+            <div class="cli-snippet">
+              <code>permforge mcp</code>
+              <button class="copy-btn-sm" data-copy="permforge mcp" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MCP Section -->
+    <section id="mcp">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">AI-Native Security Engineering</span>
+          <h2 class="section-title">Model Context Protocol (MCP) Integration</h2>
+          <p class="section-subtitle">
+            Let Claude Desktop, Cursor, Antigravity, or Cline refactor and verify your Salesforce permissions autonomously.
+          </p>
+        </div>
+
+        <div class="mcp-container">
+          <div class="mcp-info">
+            <h3>Automate Migrations with AI Agents</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">
+              PermForge implements the official <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener" style="color: #38bdf8;">Model Context Protocol (MCP)</a> standard. When running in your IDE or desktop AI client, agents have 9 native tools to inspect, plan, decompose, and verify changes safely.
+            </p>
+
+            <div class="mcp-tools-list">
+              <div class="mcp-tool-pill"><span>&#9656;</span> analyze_profiles</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> cluster_profiles</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> decompose_profile</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> verify_parity</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> strip_profile</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> generate_uap</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> generate_muting</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> lint_profiles</div>
+              <div class="mcp-tool-pill"><span>&#9656;</span> generate_migration_plan</div>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 16px; margin-top: 20px;">
+              <p style="color: #34d399; font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">&#10004; Example Prompt for Your Agent:</p>
+              <p style="font-size: 0.88rem; color: #cbd5e1; font-style: italic;">
+                "Analyze all profiles in force-app/main/default/profiles, extract a shared baseline permission set, and generate a 100% parity verification report."
+              </p>
+            </div>
+          </div>
+
+          <div class="mcp-config-box">
+            <div class="mcp-tabs">
+              <button class="mcp-tab-btn active" data-target="cfg-claude">Claude Desktop</button>
+              <button class="mcp-tab-btn" data-target="cfg-cursor">Cursor</button>
+              <button class="mcp-tab-btn" data-target="cfg-antigravity">Antigravity</button>
+              <button class="mcp-tab-btn" data-target="cfg-cline">Cline / VS Code</button>
+            </div>
+            <div class="mcp-code">
+              <!-- Claude Desktop -->
+              <div class="mcp-pane" id="cfg-claude">
+                <pre><code>// ~/Library/Application Support/Claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"]
+    }
+  }
+}</code></pre>
+                <button class="copy-btn-sm copy-btn" data-copy='{"mcpServers":{"permforge":{"command":"npx","args":["-y","permforge","mcp"]}}}' title="Copy JSON">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+              </div>
+
+              <!-- Cursor -->
+              <div class="mcp-pane" id="cfg-cursor" style="display: none;">
+                <pre><code>// In your workspace .cursor/mcp.json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"]
+    }
+  }
+}</code></pre>
+                <button class="copy-btn-sm copy-btn" data-copy='{"mcpServers":{"permforge":{"command":"npx","args":["-y","permforge","mcp"]}}}' title="Copy JSON">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+              </div>
+
+              <!-- Antigravity -->
+              <div class="mcp-pane" id="cfg-antigravity" style="display: none;">
+                <pre><code>// mcpSettings.json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"],
+      "enabled": true
+    }
+  }
+}</code></pre>
+                <button class="copy-btn-sm copy-btn" data-copy='{"mcpServers":{"permforge":{"command":"npx","args":["-y","permforge","mcp"],"enabled":true}}}' title="Copy JSON">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+              </div>
+
+              <!-- Cline -->
+              <div class="mcp-pane" id="cfg-cline" style="display: none;">
+                <pre><code>// ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
+{
+  "mcpServers": {
+    "permforge": {
+      "command": "npx",
+      "args": ["-y", "permforge", "mcp"]
+    }
+  }
+}</code></pre>
+                <button class="copy-btn-sm copy-btn" data-copy='{"mcpServers":{"permforge":{"command":"npx","args":["-y","permforge","mcp"]}}}' title="Copy JSON">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section id="comparison">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Evaluation</span>
+          <h2 class="section-title">PermForge vs. Alternative Methods</h2>
+          <p class="section-subtitle">
+            See how PermForge compares to manual spreadsheet migrations and native tooling.
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th style="color: #38bdf8;">PermForge (Open-Source)</th>
+                <th>Manual Spreadsheets &amp; Metadata API</th>
+                <th>Salesforce Standard Setup UI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>100% Mathematical Parity Proof</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> Bit-for-bit mathematical audit</td>
+                <td><span class="cross">&#10008;</span> Manual sampling / High error rate</td>
+                <td><span class="cross">&#10008;</span> None</td>
+              </tr>
+              <tr>
+                <td><strong>Cross-Profile Baseline Clustering</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> Jaccard similarity baseline extraction</td>
+                <td><span class="cross">&#10008;</span> Ad-hoc human guesswork</td>
+                <td><span class="cross">&#10008;</span> Not supported</td>
+              </tr>
+              <tr>
+                <td><strong>Automated Muting PSG Generation</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> Native .mutingpermissionset-meta.xml</td>
+                <td><span class="cross">&#10008;</span> Manual XML authoring</td>
+                <td><span class="check">&#10004;</span> Manual clicks per field/object</td>
+              </tr>
+              <tr>
+                <td><strong>Profile Sanitizer (strip migratables)</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> Preserves layouts/IPs, strips perms</td>
+                <td><span class="cross">&#10008;</span> High risk of breaking layouts</td>
+                <td><span class="cross">&#10008;</span> Manual unchecking hundreds of boxes</td>
+              </tr>
+              <tr>
+                <td><strong>Model Context Protocol (MCP) AI Tools</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> 9 tools for Cursor/Claude/Antigravity</td>
+                <td><span class="cross">&#10008;</span> None</td>
+                <td><span class="cross">&#10008;</span> None</td>
+              </tr>
+              <tr>
+                <td><strong>CI/CD Linter &amp; Pre-commit Gate</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> GitHub Actions annotations / strict mode</td>
+                <td><span class="cross">&#10008;</span> None</td>
+                <td><span class="cross">&#10008;</span> None</td>
+              </tr>
+              <tr>
+                <td><strong>Runtime API / Org Connection Required</strong></td>
+                <td class="highlight"><span class="check">&#10004;</span> <strong>Zero</strong> (Local metadata driven)</td>
+                <td>Requires live sandbox login</td>
+                <td>Requires production/sandbox login</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Banner CTA -->
+        <div class="cta-banner">
+          <h2>Ready to Modernize Your Salesforce Org?</h2>
+          <p>
+            PermForge is free, open source, and works immediately with any Salesforce DX or Metadata API repository.
+          </p>
+          <div class="hero-buttons" style="justify-content: center;">
+            <a href="https://github.com/visparashar/permforge" target="_blank" rel="noopener noreferrer" class="btn-primary">
+              View on GitHub &rarr;
+            </a>
+            <button class="btn-secondary copy-btn" data-copy="npx permforge wizard">
+              <span>Run Interactive Wizard: <code>npx permforge wizard</code></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <p>&copy; 2026 <strong>PermForge</strong>. Released under the <a href="https://github.com/visparashar/permforge/blob/main/LICENSE" target="_blank" rel="noopener" style="color: #94a3b8;">MIT License</a>.</p>
+        <p style="font-size: 0.8rem; margin-top: 4px;">Built with &hearts; by <a href="https://github.com/visparashar" target="_blank" rel="noopener" style="color: #38bdf8;">Vishal Parashar</a>. Not affiliated with Salesforce, Inc.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/visparashar/permforge" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/visparashar/permforge/releases" target="_blank" rel="noopener">Releases (v1.2.0)</a>
+        <a href="https://github.com/visparashar/permforge/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+        <a href="https://github.com/visparashar/permforge/issues" target="_blank" rel="noopener">Report Issue</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
