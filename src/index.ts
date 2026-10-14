@@ -6,3 +6,5 @@ export * from './engine/analyzer.js';
 export * from './engine/decomposer.js';
 export * from './engine/parity-engine.js';
 export * from './engine/rollout-planner.js';
+export * from './engine/cluster-engine.js';
+export * from './engine/html-reporter.js';

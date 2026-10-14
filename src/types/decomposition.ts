@@ -86,3 +86,33 @@ export interface ParityReport {
     tabsMatch: boolean;
   };
 }
+
+export interface ClusterOptions {
+  threshold?: number; // e.g. 0.75 for 75%
+  baselineName?: string;
+  outputDir: string;
+  createGroups?: boolean;
+}
+
+export interface ProfileDelta {
+  profileName: string;
+  deltaPermissionSets: GeneratedPermissionSet[];
+  permissionSetGroup?: GeneratedPermissionSetGroup;
+  stats: {
+    basePermissionsUsed: number;
+    deltaPermissionsCount: number;
+  };
+}
+
+export interface ClusterResult {
+  totalProfilesAnalyzed: number;
+  thresholdUsed: number;
+  baselinePermissionSet: GeneratedPermissionSet;
+  profileDeltas: ProfileDelta[];
+  stats: {
+    baselineObjectsCount: number;
+    baselineFieldsCount: number;
+    baselineUserPermsCount: number;
+    totalDeltasCreated: number;
+  };
+}

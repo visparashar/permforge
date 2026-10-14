@@ -176,6 +176,44 @@ permforge plan \
 
 ---
 
+### 5. `permforge cluster`
+
+Analyzes multiple profiles simultaneously to extract a shared **`Standard_Employee_Baseline`** Permission Set for permissions common across your organization (e.g. granted by $\ge 75\%$ of profiles). Generates modular delta permission sets for role-specific access, adhering to Salesforce Well-Architected standards.
+
+```bash
+# Cluster all profiles in the project with default 75% threshold
+permforge cluster
+
+# Custom threshold (e.g. 60% of profiles) and custom baseline name
+permforge cluster --source force-app/main/default/profiles --threshold 0.6 --base-name "Global_Core_Access"
+```
+
+---
+
+### 6. `permforge report`
+
+Generates a standalone, interactive HTML security dashboard with complexity meters, high-risk security alerts, and access parity matrices. Zero external dependencies—works completely offline.
+
+```bash
+# Generate report for local profiles
+permforge report
+
+# Custom output destination
+permforge report --source force-app/main/default/profiles --output ./audit-reports/security-audit.html
+```
+
+---
+
+### 7. `permforge wizard`
+
+Interactive, guided terminal wizard that prompts you step-by-step through profile auditing, decomposition, clustering, and migration planning with intuitive arrow-key menus.
+
+```bash
+permforge wizard
+```
+
+---
+
 ## 💻 Programmatic API Usage
 
 PermForge can be embedded directly in your custom TypeScript / JavaScript scripts, CI/CD pipelines, or GitHub Actions:

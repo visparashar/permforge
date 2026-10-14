@@ -65,10 +65,20 @@
       },
       "plan": {
         "description": "Generate user assignment and migration rollout plans"
+      },
+      "cluster": {
+        "description": "Cross-profile clustering to extract shared baselines and isolate deltas"
+      },
+      "report": {
+        "description": "Generate visual, interactive HTML security and parity audit reports"
+      },
+      "wizard": {
+        "description": "Interactive guided step-by-step migration wizard"
       }
     }
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.7.3",
     "@oclif/core": "^4.2.14",
     "cli-table3": "^0.6.5",
     "fast-xml-parser": "^4.5.3",
