@@ -14,5 +14,6 @@ export * from './engine/mute-builder.js';
 export * from './engine/profile-linter.js';
 export * from './engine/graph-builder.js';
 export * from './engine/pipeline-runner.js';
+export * from './engine/modernization-advisor.js';
 export * from './services/salesforce-org.js';
 export * from './mcp/server.js';

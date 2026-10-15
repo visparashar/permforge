@@ -30,6 +30,7 @@ describe('PermForge MCP Server', () => {
     expect(toolNames).toContain('permforge_graph');
     expect(toolNames).toContain('permforge_assign_users');
     expect(toolNames).toContain('permforge_rollback_assignment');
+    expect(toolNames).toContain('permforge_advise_modernization');
   });
 
   it('should execute permforge_analyze tool successfully', async () => {

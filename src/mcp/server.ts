@@ -21,6 +21,7 @@ import { GraphBuilder } from '../engine/graph-builder.js';
 import { PipelineRunner } from '../engine/pipeline-runner.js';
 import { XmlEngine } from '../parser/xml-engine.js';
 import { SalesforceOrgService } from '../services/salesforce-org.js';
+import { ModernizationAdvisor } from '../engine/modernization-advisor.js';
 import { DecompositionStrategy } from '../types/decomposition.js';
 
 const TOOLS: Tool[] = [
@@ -387,6 +388,30 @@ const TOOLS: Tool[] = [
       required: ['rollbackFile'],
     },
   },
+  {
+    name: 'permforge_advise_modernization',
+    description:
+      'Audit Salesforce profiles for Dynamic Forms readiness and decouple non-default Record Types into Permission Sets under Salesforce 2026 architecture.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          description:
+            'Path to a profile file, directory, or glob pattern (defaults to force-app/main/default/profiles)',
+        },
+        decoupleRecordTypes: {
+          type: 'boolean',
+          description: 'Generate decoupled Permission Sets for non-default Record Types',
+          default: false,
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Destination directory for generated Permission Sets',
+        },
+      },
+    },
+  },
 ];
 
 export function createMcpServer(): Server {
@@ -415,6 +440,7 @@ export function createMcpServer(): Server {
   const graphBuilder = new GraphBuilder(xmlEngine);
   const pipelineRunner = new PipelineRunner();
   const orgService = new SalesforceOrgService(xmlEngine);
+  const advisor = new ModernizationAdvisor(xmlEngine);
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOLS };
@@ -734,6 +760,23 @@ export function createMcpServer(): Server {
           const result = await orgService.rollbackUserAssignments(rollbackFile, targetOrg);
           return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
+        case 'permforge_advise_modernization': {
+          const source = (args.source as string) || 'force-app/main/default/profiles';
+          const decouple = Boolean(args.decoupleRecordTypes);
+          const outputDir = args.outputDir as string | undefined;
+
+          const profiles = await reader.loadProfiles(source);
+          const advisories = profiles.map((p) =>
+            advisor.analyzeDynamicFormsReadiness(p, {
+              outputDir: decouple ? outputDir : undefined,
+            })
+          );
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(advisories, null, 2) }],
           };
         }
 

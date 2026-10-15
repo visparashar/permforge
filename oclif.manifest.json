@@ -1,5 +1,68 @@
 {
   "commands": {
+    "advise": {
+      "aliases": [],
+      "args": {},
+      "description": "Audit profiles for Dynamic Forms readiness and decouple non-default Record Types into Permission Sets (Salesforce 2026 Advisor)",
+      "examples": [
+        "<%= config.bin %> advise --source force-app/main/default/profiles/Sales_User.profile-meta.xml",
+        "<%= config.bin %> advise --decouple-record-types --output-dir force-app/main/default",
+        "<%= config.bin %> advise --decouple-record-types --separate-by-object",
+        "<%= config.bin %> advise --json"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to a profile file, directory, or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "decouple-record-types": {
+          "description": "Generate decoupled Permission Sets for non-default Record Types",
+          "name": "decouple-record-types",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "separate-by-object": {
+          "description": "Separate decoupled record types into per-object Permission Sets",
+          "name": "separate-by-object",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for decoupled Permission Sets",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "advise",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "advise.js"
+      ]
+    },
     "analyze": {
       "aliases": [],
       "args": {},
