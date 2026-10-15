@@ -1,0 +1,61 @@
+name: PermForge CI & Automated PR Review Bot
+
+on:
+  pull_request:
+    paths:
+      - '**/profiles/**'
+      - '**/permissionsets/**'
+      - '**/permissionsetgroups/**'
+
+jobs:
+  permforge-review:
+    name: PermForge Security & Parity Bot
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Checkout Base Branch for Drift Comparison
+        run: |
+          git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+          git worktree add ../base-branch refs/remotes/origin/${{ github.base_ref }} || true
+
+      - name: Install PermForge CLI
+        run: npm install -g permforge
+
+      - name: Run PermForge Automated PR Review Bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          permforge pr-bot \
+            --source force-app/main/default/profiles \
+            --base ../base-branch/force-app/main/default/profiles \
+            --post \
+            --output-file pr-comment.md
+
+      - name: Run Zero-Profile-Permissions Linter
+        run: permforge lint --source force-app/main/default/profiles --github-actions
+
+      - name: Generate SOC 2 & HIPAA Compliance Evidence
+        run: permforge compliance --source force-app/main/default/profiles --output-dir reports/compliance
+
+      - name: Upload Compliance Evidence Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compliance-evidence-package
+          path: reports/compliance/

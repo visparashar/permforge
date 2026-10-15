@@ -1,6 +1,6 @@
 {
   "name": "permforge",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "type": "module",
   "description": "Intelligent Salesforce Profile to Permission Set & Permission Set Group migration and modularization toolkit.",
   "author": "Vishal Parashar",
@@ -102,6 +102,24 @@
       },
       "retrieve": {
         "description": "Retrieve profile metadata directly from an authenticated live Salesforce org"
+      },
+      "advise": {
+        "description": "Audit profiles for Dynamic Forms readiness and decouple non-default Record Types"
+      },
+      "assign": {
+        "description": "Automate live user assignments to Permission Set Groups with dry-run and rollback"
+      },
+      "prune": {
+        "description": "Usage-driven least-privilege optimization using Salesforce Event Monitoring logs"
+      },
+      "drift": {
+        "description": "Detect permission drift across environments and generate reconciliation Permission Sets"
+      },
+      "compliance": {
+        "description": "Audit profiles for SOC 2, HIPAA, and ISO 27001 compliance and generate evidence packages"
+      },
+      "pr-bot": {
+        "description": "Automated GitHub Pull Request review bot with visual risk diffs and security alerts"
       }
     }
   },

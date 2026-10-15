@@ -14,6 +14,9 @@ import {
   XmlEngine,
   SalesforceOrgService,
   PipelineRunner,
+  LeastPrivilegeEngine,
+  DriftEngine,
+  ComplianceEngine,
 } from 'permforge';
 
 export class MigrationStudioPanel {
@@ -30,6 +33,9 @@ export class MigrationStudioPanel {
   private stripper = new ProfileStripper();
   private xmlEngine = new XmlEngine();
   private orgService = new SalesforceOrgService();
+  private leastPrivilegeEngine = new LeastPrivilegeEngine();
+  private driftEngine = new DriftEngine();
+  private complianceEngine = new ComplianceEngine();
 
   public static createOrShow(extensionUri: vscode.Uri, initialProfilePath?: string, initialTab: string = 'tab-dashboard') {
     const column = vscode.window.activeTextEditor
@@ -118,6 +124,15 @@ export class MigrationStudioPanel {
             return;
           case 'rollbackUserAssignments':
             await this.handleRollbackUserAssignments(message.targetOrg, message.rollbackFile);
+            return;
+          case 'auditLeastPrivilege':
+            await this.handleAuditLeastPrivilege(message.profilePath, message.eventsPath, message.mode);
+            return;
+          case 'detectDrift':
+            await this.handleDetectDrift(message.basePath, message.targetPath, message.reconcile);
+            return;
+          case 'auditCompliance':
+            await this.handleAuditCompliance(message.framework, message.exportArtifacts);
             return;
         }
       },
@@ -648,6 +663,148 @@ export class MigrationStudioPanel {
     }
   }
 
+  private async handleAuditLeastPrivilege(profilePath: string, eventsPath?: string, mode: string = 'audit-only') {
+    try {
+      const profile = await this.reader.loadProfile(profilePath);
+      let eventsContent = '';
+      if (eventsPath && eventsPath.trim()) {
+        try {
+          eventsContent = await fs.readFile(eventsPath.trim(), 'utf-8');
+        } catch (err: any) {
+          vscode.window.showWarningMessage(`Could not read telemetry file (${err.message}). Proceeding with empty activity baseline.`);
+        }
+      }
+
+      const footprint = this.leastPrivilegeEngine.parseEvents(eventsContent);
+      const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+      const outputDir = path.join(rootPath, 'force-app/main/default');
+
+      const report = await this.leastPrivilegeEngine.auditProfile(profile, footprint, {
+        mode: mode as any,
+        outputDir,
+      });
+
+      if (mode === 'prune' || mode === 'mute') {
+        vscode.commands.executeCommand('permforge.refreshProfiles');
+      }
+
+      this._panel.webview.postMessage({
+        type: 'leastPrivilegeReport',
+        profileName: profile.name,
+        report,
+      });
+
+      vscode.window.showInformationMessage(
+        `✔ Least-Privilege audit complete for ${profile.name}: ${report.utilizationRatePercent}% utilization (${report.dormantPermissionsCount} dormant permissions).`
+      );
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Least-Privilege audit failed: ${err.message}`);
+      this._panel.webview.postMessage({
+        type: 'leastPrivilegeError',
+        error: err.message,
+      });
+    }
+  }
+
+  private async handleDetectDrift(basePath: string, targetPath: string, reconcile: boolean = false) {
+    try {
+      const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+      const reconciliationOutputDir = path.join(rootPath, 'force-app/main/default');
+
+      const baseStat = await fs.stat(basePath);
+      const targetStat = await fs.stat(targetPath);
+
+      if (baseStat.isDirectory() && targetStat.isDirectory()) {
+        const baseProfiles = await this.reader.loadProfiles(basePath);
+        const targetProfiles = await this.reader.loadProfiles(targetPath);
+        const report = this.driftEngine.compareProfileCollections(baseProfiles, targetProfiles, {
+          generateReconciliation: reconcile,
+          reconciliationOutputDir,
+        });
+
+        if (reconcile) {
+          vscode.commands.executeCommand('permforge.refreshProfiles');
+        }
+
+        this._panel.webview.postMessage({
+          type: 'driftReportMulti',
+          report,
+        });
+
+        vscode.window.showInformationMessage(
+          `✔ Drift Analysis complete: ${report.totalDriftsFound} drift(s) across ${report.profilesWithDrift} profile(s).`
+        );
+      } else {
+        const baseProfile = await this.reader.loadProfile(basePath);
+        const targetProfile = await this.reader.loadProfile(targetPath);
+        const report = this.driftEngine.compareProfiles(baseProfile, targetProfile, {
+          generateReconciliation: reconcile,
+          reconciliationOutputDir,
+        });
+
+        if (reconcile && report.reconciliationPermissionSet) {
+          vscode.commands.executeCommand('permforge.refreshProfiles');
+        }
+
+        this._panel.webview.postMessage({
+          type: 'driftReportSingle',
+          report,
+        });
+
+        vscode.window.showInformationMessage(
+          `✔ Drift Analysis complete for ${baseProfile.name} vs ${targetProfile.name}: ${report.totalDrifts} drift(s) found (${report.overallSeverity} severity).`
+        );
+      }
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Drift detection failed: ${err.message}`);
+      this._panel.webview.postMessage({
+        type: 'driftError',
+        error: err.message,
+      });
+    }
+  }
+
+  private async handleAuditCompliance(framework: string = 'all', exportArtifacts: boolean = true) {
+    try {
+      const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+      const config = vscode.workspace.getConfiguration('permforge');
+      const customDir = config.get<string>('profilesDirectory', 'force-app/main/default/profiles');
+      const searchTarget = path.isAbsolute(customDir) ? customDir : path.join(rootPath, customDir);
+
+      let profiles = await this.reader.loadProfiles(searchTarget);
+      if (profiles.length === 0) {
+        profiles = await this.reader.loadProfiles(rootPath);
+      }
+
+      if (profiles.length === 0) {
+        vscode.window.showWarningMessage('No profiles found in workspace to audit for compliance.');
+        return;
+      }
+
+      const outputDir = path.join(rootPath, 'output/compliance');
+      const report = this.complianceEngine.auditCompliance(profiles, {
+        framework: framework as any,
+        outputDir,
+        generateArtifacts: exportArtifacts,
+      });
+
+      this._panel.webview.postMessage({
+        type: 'complianceReport',
+        report,
+      });
+
+      vscode.window.showInformationMessage(
+        `✔ Compliance Audit complete: ${report.overallStatus} (${report.scorePercent}% score across ${profiles.length} profiles).`
+      );
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Compliance audit failed: ${err.message}`);
+      this._panel.webview.postMessage({
+        type: 'complianceError',
+        error: err.message,
+      });
+    }
+  }
+
   public dispose() {
     MigrationStudioPanel.currentPanel = undefined;
     this._panel.dispose();
@@ -972,6 +1129,9 @@ export class MigrationStudioPanel {
     <button class="tab-btn" id="tabBtn-cluster" onclick="switchTab('tab-cluster')">🧩 Cross-Profile Clustering</button>
     <button class="tab-btn" id="tabBtn-pipeline" onclick="switchTab('tab-pipeline')">⚡ Enterprise Pipeline</button>
     <button class="tab-btn" id="tabBtn-strip" onclick="switchTab('tab-strip')">🧹 Profile Sanitizer</button>
+    <button class="tab-btn" id="tabBtn-prune" onclick="switchTab('tab-prune')">🎯 Least-Privilege &amp; Pruner</button>
+    <button class="tab-btn" id="tabBtn-drift" onclick="switchTab('tab-drift')">🔍 Cross-Org Drift Guard</button>
+    <button class="tab-btn" id="tabBtn-compliance" onclick="switchTab('tab-compliance')">📋 Compliance &amp; Audit</button>
   </div>
 
   <!-- Tab 1: Overview -->
@@ -1271,6 +1431,274 @@ export class MigrationStudioPanel {
     </div>
   </div>
 
+  <!-- Tab 8: Least Privilege & Pruner -->
+  <div class="tab-content" id="tab-prune">
+    <div class="card">
+      <h3 style="margin-bottom: 12px;">Usage-Driven Least-Privilege Optimization</h3>
+      <p style="opacity: 0.8; margin-bottom: 20px; font-size: 0.88rem;">
+        Cross-references static profile permissions with real Salesforce EventLogFile telemetry. Calculates dormant access, computes an Over-Privilege score, and generates a minimal pruned Permission Set or Muting Permission Set.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Target Profile to Audit:</label>
+          <select id="pruneProfileSelect"></select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Audit &amp; Remediation Mode:</label>
+          <select id="pruneMode">
+            <option value="audit-only" selected>Audit &amp; Scorecard Only (Read-Only)</option>
+            <option value="prune">Prune Dormant Access into Minimal Permission Set</option>
+            <option value="mute">Generate Muting Permission Set (Silences Dormant Grants)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Salesforce EventLogFile Telemetry (CSV or JSON path, or leave blank for zero-activity audit):</label>
+        <input type="text" id="pruneEventsPath" placeholder="e.g. ./telemetry/eventlog.csv or force-app/events/usage.json" style="max-width: 100%;">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-success" onclick="executeLeastPrivilegeAudit()">🎯 Run Least-Privilege Audit</button>
+      </div>
+
+      <div class="status-box" id="pruneStatus"></div>
+
+      <div id="pruneResultsSection" style="display: none; margin-top: 24px;">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="pruneMetricUtil" style="color: var(--accent-cyan);">0%</div>
+            <div class="metric-label">Utilization Rate</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="pruneMetricOverPriv" style="color: var(--accent-amber);">0/100</div>
+            <div class="metric-label">Over-Privilege Score</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="pruneMetricDormantCount">0</div>
+            <div class="metric-label">Dormant Permissions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="pruneMetricRisk" style="color: var(--accent-rose);">LOW</div>
+            <div class="metric-label">Dormant Risk Level</div>
+          </div>
+        </div>
+
+        <div id="pruneArtifactBox" class="card" style="display: none; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); margin-bottom: 20px;">
+          <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">Generated Remediation Artifact</h4>
+          <div id="pruneArtifactDetails" style="font-size: 0.88rem;"></div>
+        </div>
+
+        <h4 style="margin-bottom: 12px;">Dormant Permissions Detected (Never Exercised in Telemetry):</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Granted Access</th>
+              <th>Risk Level</th>
+              <th>Recommendation</th>
+            </tr>
+          </thead>
+          <tbody id="pruneTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 9: Cross-Org Drift Guard -->
+  <div class="tab-content" id="tab-drift">
+    <div class="card">
+      <h3 style="margin-bottom: 12px;">Cross-Environment Drift Guard</h3>
+      <p style="opacity: 0.8; margin-bottom: 20px; font-size: 0.88rem;">
+        Compare metadata across branches, orgs, or local profiles to detect unauthorized privilege creep, missing permissions, or configuration drift before deployment.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Base Profile / Directory (Source of Truth):</label>
+          <select id="driftBaseSelect" onchange="syncDriftBaseInput()"></select>
+          <input type="text" id="driftBasePath" placeholder="Or enter path to base profile / directory..." style="margin-top: 6px; max-width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Target Profile / Directory (To Compare):</label>
+          <input type="text" id="driftTargetPath" placeholder="e.g. force-app/main/default/profiles/Target.profile-meta.xml" style="max-width: 100%;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 16px; margin-bottom: 20px; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem;">
+          <input type="checkbox" id="driftReconcile"> Auto-generate Reconciliation Permission Set for detected drifts
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-success" onclick="executeDetectDrift()">🔍 Scan for Metadata Drift</button>
+      </div>
+
+      <div class="status-box" id="driftStatus"></div>
+
+      <div id="driftResultsSection" style="display: none; margin-top: 24px;">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="driftMetricTotal">0</div>
+            <div class="metric-label">Total Drifts Found</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="driftMetricSeverity" style="color: var(--accent-green);">NONE</div>
+            <div class="metric-label">Highest Severity</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="driftMetricObj">0</div>
+            <div class="metric-label">SObject Drifts</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="driftMetricFls">0</div>
+            <div class="metric-label">FLS Field Drifts</div>
+          </div>
+        </div>
+
+        <div id="driftReconcileBox" class="card" style="display: none; background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); margin-bottom: 20px;">
+          <h4 style="color: var(--accent-green); margin-bottom: 8px;">Reconciliation Permission Set Created</h4>
+          <div id="driftReconcileDetails" style="font-size: 0.88rem;"></div>
+        </div>
+
+        <h4 style="margin-bottom: 12px;">Detailed Drift Log:</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Item Name</th>
+              <th>Drift Type</th>
+              <th>Base State</th>
+              <th>Target State</th>
+              <th>Severity</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="driftTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 10: Compliance & Audit -->
+  <div class="tab-content" id="tab-compliance">
+    <div class="card">
+      <h3 style="margin-bottom: 12px;">Enterprise Regulatory Compliance &amp; Security Scorecard</h3>
+      <p style="opacity: 0.8; margin-bottom: 20px; font-size: 0.88rem;">
+        Automated compliance assessment covering SOC 2 Type II, HIPAA Security Rule, and ISO 27001. Audits superuser administrative permissions, Segregation of Duties (SoD) violations, and ePHI / PII data exposure.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Target Regulatory Framework:</label>
+          <select id="complianceFramework">
+            <option value="all" selected>All Frameworks (SOC 2 Type II, HIPAA, ISO 27001)</option>
+            <option value="soc2">SOC 2 Type II (Trust Services Criteria CC6.1 - CC6.3)</option>
+            <option value="hipaa">HIPAA Security Rule (45 CFR § 164.312 Access Control)</option>
+            <option value="iso27001">ISO/IEC 27001:2022 (A.9.2, A.9.4 Access Control)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; display: flex; align-items: flex-end;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; padding-bottom: 10px;">
+            <input type="checkbox" id="complianceExportArtifacts" checked> Export Evidence Package (HTML Report, CSV Matrix, Markdown)
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-success" onclick="executeAuditCompliance()">📋 Run Compliance Audit</button>
+      </div>
+
+      <div class="status-box" id="complianceStatus"></div>
+
+      <div id="complianceResultsSection" style="display: none; margin-top: 24px;">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="complianceMetricStatus" style="color: var(--accent-green);">COMPLIANT</div>
+            <div class="metric-label">Overall Status</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="complianceMetricScore" style="color: var(--accent-cyan);">100%</div>
+            <div class="metric-label">Compliance Score</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="complianceMetricProfiles">0</div>
+            <div class="metric-label">Profiles Audited</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="complianceMetricControls">0</div>
+            <div class="metric-label">Controls Evaluated</div>
+          </div>
+        </div>
+
+        <div id="complianceExportBox" class="card" style="display: none; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); margin-bottom: 20px;">
+          <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">📁 Exported Audit Evidence Package</h4>
+          <div id="complianceExportDetails" style="font-size: 0.88rem;"></div>
+        </div>
+
+        <h4 style="margin-bottom: 12px;">Regulatory Controls Scorecard:</h4>
+        <table style="margin-bottom: 24px;">
+          <thead>
+            <tr>
+              <th>Control ID</th>
+              <th>Framework</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Findings</th>
+            </tr>
+          </thead>
+          <tbody id="complianceControlsTableBody"></tbody>
+        </table>
+
+        <div id="complianceFindingsContainer">
+          <h4 style="margin-bottom: 12px; color: var(--accent-rose);">Critical Administrative &amp; Superuser Privileges:</h4>
+          <table style="margin-bottom: 24px;">
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Permission</th>
+                <th>Risk Category</th>
+                <th>Severity</th>
+                <th>Mitigation Recommendation</th>
+              </tr>
+            </thead>
+            <tbody id="complianceAdminTableBody"></tbody>
+          </table>
+
+          <h4 style="margin-bottom: 12px; color: var(--accent-amber);">ePHI / PII Sensitive Data Grants:</h4>
+          <table style="margin-bottom: 24px;">
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Object / Field</th>
+                <th>Access Granted</th>
+                <th>Data Type</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody id="compliancePhiTableBody"></tbody>
+          </table>
+
+          <h4 style="margin-bottom: 12px; color: var(--accent-rose);">Segregation of Duties (SoD) Violations:</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Conflicting Permissions</th>
+                <th>Rationale</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody id="complianceSodTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const vscode = acquireVsCodeApi();
     let currentProfiles = [];
@@ -1431,9 +1859,385 @@ export class MigrationStudioPanel {
       });
     }
 
+    function executeLeastPrivilegeAudit() {
+      const profilePath = document.getElementById('pruneProfileSelect').value;
+      const eventsPath = document.getElementById('pruneEventsPath').value;
+      const mode = document.getElementById('pruneMode').value;
+      if (!profilePath) {
+        alert('Please select a profile to audit.');
+        return;
+      }
+      const status = document.getElementById('pruneStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-cyan);">⏳ Auditing profile against telemetry...</span>';
+      document.getElementById('pruneResultsSection').style.display = 'none';
+      vscode.postMessage({
+        command: 'auditLeastPrivilege',
+        profilePath,
+        eventsPath,
+        mode,
+      });
+    }
+
+    function renderLeastPrivilegeReport(report, profileName) {
+      document.getElementById('pruneStatus').style.display = 'none';
+      const sec = document.getElementById('pruneResultsSection');
+      sec.style.display = 'block';
+
+      document.getElementById('pruneMetricUtil').innerText = report.utilizationRatePercent + '%';
+      document.getElementById('pruneMetricOverPriv').innerText = report.overPrivilegeScore + '/100';
+      document.getElementById('pruneMetricDormantCount').innerText = report.dormantPermissionsCount;
+
+      const riskEl = document.getElementById('pruneMetricRisk');
+      riskEl.innerText = report.dormantRiskLevel;
+      if (report.dormantRiskLevel === 'CRITICAL' || report.dormantRiskLevel === 'HIGH') {
+        riskEl.style.color = 'var(--accent-rose)';
+      } else if (report.dormantRiskLevel === 'MEDIUM') {
+        riskEl.style.color = 'var(--accent-amber)';
+      } else {
+        riskEl.style.color = 'var(--accent-green)';
+      }
+
+      const artBox = document.getElementById('pruneArtifactBox');
+      const artDetails = document.getElementById('pruneArtifactDetails');
+      if (report.generatedPrunedPermissionSet) {
+        artBox.style.display = 'block';
+        artDetails.innerHTML = '<strong>Generated Pruned Permission Set:</strong> <code>' + report.generatedPrunedPermissionSet.apiName + '</code> (' + report.generatedPrunedPermissionSet.fileName + ')';
+      } else if (report.generatedMutingPermissionSet) {
+        artBox.style.display = 'block';
+        artDetails.innerHTML = '<strong>Generated Muting Permission Set:</strong> <code>' + report.generatedMutingPermissionSet.apiName + '</code> (Muted ' + (report.generatedMutingPermissionSet.stats ? report.generatedMutingPermissionSet.stats.objectsMuted : 0) + ' objects, ' + (report.generatedMutingPermissionSet.stats ? report.generatedMutingPermissionSet.stats.userPermsMuted : 0) + ' user perms)';
+      } else {
+        artBox.style.display = 'none';
+      }
+
+      const tbody = document.getElementById('pruneTableBody');
+      tbody.innerHTML = '';
+      if (!report.dormantPermissions || report.dormantPermissions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--accent-green); font-weight: 600;">🎉 100% Permission Utilization! Zero dormant permissions detected.</td></tr>';
+      } else {
+        report.dormantPermissions.forEach(dp => {
+          let badgeClass = 'badge-low';
+          if (dp.riskLevel === 'CRITICAL' || dp.riskLevel === 'HIGH') badgeClass = 'badge-high';
+          else if (dp.riskLevel === 'MEDIUM') badgeClass = 'badge-med';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><span class="badge">' + dp.category + '</span></td>' +
+            '<td><strong>' + dp.name + '</strong></td>' +
+            '<td><code>' + dp.grantedAccess + '</code></td>' +
+            '<td><span class="' + badgeClass + '">' + dp.riskLevel + '</span></td>' +
+            '<td>' + dp.recommendation + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function syncDriftBaseInput() {
+      const sel = document.getElementById('driftBaseSelect').value;
+      if (sel) {
+        document.getElementById('driftBasePath').value = sel;
+      }
+    }
+
+    function executeDetectDrift() {
+      const basePath = document.getElementById('driftBasePath').value.trim() || document.getElementById('driftBaseSelect').value;
+      const targetPath = document.getElementById('driftTargetPath').value.trim();
+      const reconcile = document.getElementById('driftReconcile').checked;
+
+      if (!basePath || !targetPath) {
+        alert('Please specify both Base path and Target path for drift comparison.');
+        return;
+      }
+
+      const status = document.getElementById('driftStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-cyan);">⏳ Analyzing metadata drift between environments...</span>';
+      document.getElementById('driftResultsSection').style.display = 'none';
+
+      vscode.postMessage({
+        command: 'detectDrift',
+        basePath,
+        targetPath,
+        reconcile,
+      });
+    }
+
+    function renderDriftReportSingle(report) {
+      document.getElementById('driftStatus').style.display = 'none';
+      const sec = document.getElementById('driftResultsSection');
+      sec.style.display = 'block';
+
+      document.getElementById('driftMetricTotal').innerText = report.totalDrifts;
+      const sevEl = document.getElementById('driftMetricSeverity');
+      sevEl.innerText = report.overallSeverity;
+      if (report.overallSeverity === 'CRITICAL' || report.overallSeverity === 'HIGH') {
+        sevEl.style.color = 'var(--accent-rose)';
+      } else if (report.overallSeverity === 'MEDIUM') {
+        sevEl.style.color = 'var(--accent-amber)';
+      } else {
+        sevEl.style.color = 'var(--accent-green)';
+      }
+
+      document.getElementById('driftMetricObj').innerText = report.driftsByCategory ? report.driftsByCategory.objects : 0;
+      document.getElementById('driftMetricFls').innerText = report.driftsByCategory ? report.driftsByCategory.fields : 0;
+
+      const recBox = document.getElementById('driftReconcileBox');
+      const recDetails = document.getElementById('driftReconcileDetails');
+      if (report.reconciliationPermissionSet) {
+        recBox.style.display = 'block';
+        recDetails.innerHTML = '<strong>Reconciliation Permission Set Created:</strong> <code>' + report.reconciliationPermissionSet.apiName + '</code> (' + report.reconciliationPermissionSet.fileName + ')';
+      } else {
+        recBox.style.display = 'none';
+      }
+
+      const tbody = document.getElementById('driftTableBody');
+      tbody.innerHTML = '';
+      if (!report.drifts || report.drifts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--accent-green); font-weight: 600;">✔ Zero drift detected! Environments are identical.</td></tr>';
+      } else {
+        report.drifts.forEach(d => {
+          let badgeClass = 'badge-low';
+          if (d.severity === 'CRITICAL' || d.severity === 'HIGH') badgeClass = 'badge-high';
+          else if (d.severity === 'MEDIUM') badgeClass = 'badge-med';
+
+          let typeBadge = 'color: var(--accent-cyan);';
+          if (d.type === 'ADDED') typeBadge = 'color: var(--accent-green);';
+          else if (d.type === 'REMOVED') typeBadge = 'color: var(--accent-rose);';
+          else if (d.type === 'MODIFIED') typeBadge = 'color: var(--accent-amber);';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><span class="badge">' + d.category + '</span></td>' +
+            '<td><strong>' + d.name + '</strong></td>' +
+            '<td style="' + typeBadge + ' font-weight: 700;">' + d.type + '</td>' +
+            '<td><code>' + d.baseState + '</code></td>' +
+            '<td><code>' + d.targetState + '</code></td>' +
+            '<td><span class="' + badgeClass + '">' + d.severity + '</span></td>' +
+            '<td>' + d.details + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function renderDriftReportMulti(multiReport) {
+      document.getElementById('driftStatus').style.display = 'none';
+      const sec = document.getElementById('driftResultsSection');
+      sec.style.display = 'block';
+
+      document.getElementById('driftMetricTotal').innerText = multiReport.totalDriftsFound;
+      const sevEl = document.getElementById('driftMetricSeverity');
+      sevEl.innerText = multiReport.highestSeverity;
+      if (multiReport.highestSeverity === 'CRITICAL' || multiReport.highestSeverity === 'HIGH') {
+        sevEl.style.color = 'var(--accent-rose)';
+      } else if (multiReport.highestSeverity === 'MEDIUM') {
+        sevEl.style.color = 'var(--accent-amber)';
+      } else {
+        sevEl.style.color = 'var(--accent-green)';
+      }
+
+      let totalObj = 0;
+      let totalFls = 0;
+      const allDrifts = [];
+      (multiReport.reports || []).forEach(r => {
+        if (r.driftsByCategory) {
+          totalObj += r.driftsByCategory.objects;
+          totalFls += r.driftsByCategory.fields;
+        }
+        (r.drifts || []).forEach(d => {
+          allDrifts.push({ ...d, profileName: r.profileName });
+        });
+      });
+
+      document.getElementById('driftMetricObj').innerText = totalObj;
+      document.getElementById('driftMetricFls').innerText = totalFls;
+
+      const recBox = document.getElementById('driftReconcileBox');
+      recBox.style.display = 'none';
+
+      const tbody = document.getElementById('driftTableBody');
+      tbody.innerHTML = '';
+      if (allDrifts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--accent-green); font-weight: 600;">✔ Zero drift detected across all profiles!</td></tr>';
+      } else {
+        allDrifts.forEach(d => {
+          let badgeClass = 'badge-low';
+          if (d.severity === 'CRITICAL' || d.severity === 'HIGH') badgeClass = 'badge-high';
+          else if (d.severity === 'MEDIUM') badgeClass = 'badge-med';
+
+          let typeBadge = 'color: var(--accent-cyan);';
+          if (d.type === 'ADDED') typeBadge = 'color: var(--accent-green);';
+          else if (d.type === 'REMOVED') typeBadge = 'color: var(--accent-rose);';
+          else if (d.type === 'MODIFIED') typeBadge = 'color: var(--accent-amber);';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><span class="badge">' + d.category + '</span></td>' +
+            '<td><strong>' + (d.profileName ? d.profileName + ' &rsaquo; ' : '') + d.name + '</strong></td>' +
+            '<td style="' + typeBadge + ' font-weight: 700;">' + d.type + '</td>' +
+            '<td><code>' + d.baseState + '</code></td>' +
+            '<td><code>' + d.targetState + '</code></td>' +
+            '<td><span class="' + badgeClass + '">' + d.severity + '</span></td>' +
+            '<td>' + d.details + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function executeAuditCompliance() {
+      const framework = document.getElementById('complianceFramework').value;
+      const exportArtifacts = document.getElementById('complianceExportArtifacts').checked;
+
+      const status = document.getElementById('complianceStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-cyan);">⏳ Auditing regulatory controls and security baselines...</span>';
+      document.getElementById('complianceResultsSection').style.display = 'none';
+
+      vscode.postMessage({
+        command: 'auditCompliance',
+        framework,
+        exportArtifacts,
+      });
+    }
+
+    function renderComplianceReport(report) {
+      document.getElementById('complianceStatus').style.display = 'none';
+      const sec = document.getElementById('complianceResultsSection');
+      sec.style.display = 'block';
+
+      const statusEl = document.getElementById('complianceMetricStatus');
+      statusEl.innerText = report.overallStatus;
+      if (report.overallStatus === 'COMPLIANT') {
+        statusEl.style.color = 'var(--accent-green)';
+      } else if (report.overallStatus === 'WARNING') {
+        statusEl.style.color = 'var(--accent-amber)';
+      } else {
+        statusEl.style.color = 'var(--accent-rose)';
+      }
+
+      document.getElementById('complianceMetricScore').innerText = report.scorePercent + '%';
+      document.getElementById('complianceMetricProfiles').innerText = report.totalProfilesAudited;
+      document.getElementById('complianceMetricControls').innerText = report.controlResults ? report.controlResults.length : 0;
+
+      const expBox = document.getElementById('complianceExportBox');
+      const expDetails = document.getElementById('complianceExportDetails');
+      if (report.exportedFiles && (report.exportedFiles.htmlReportPath || report.exportedFiles.csvMatrixPath || report.exportedFiles.markdownSummaryPath)) {
+        expBox.style.display = 'block';
+        let filesHtml = '<ul style="padding-left: 20px; line-height: 1.8;">';
+        if (report.exportedFiles.htmlReportPath) filesHtml += '<li><strong>Interactive HTML Report:</strong> <code>' + report.exportedFiles.htmlReportPath + '</code></li>';
+        if (report.exportedFiles.csvMatrixPath) filesHtml += '<li><strong>CSV Audit Matrix:</strong> <code>' + report.exportedFiles.csvMatrixPath + '</code></li>';
+        if (report.exportedFiles.markdownSummaryPath) filesHtml += '<li><strong>Markdown Executive Summary:</strong> <code>' + report.exportedFiles.markdownSummaryPath + '</code></li>';
+        filesHtml += '</ul>';
+        expDetails.innerHTML = filesHtml;
+      } else {
+        expBox.style.display = 'none';
+      }
+
+      const cTbody = document.getElementById('complianceControlsTableBody');
+      cTbody.innerHTML = '';
+      (report.controlResults || []).forEach(ctrl => {
+        let statusClass = 'badge-low';
+        if (ctrl.status === 'NON_COMPLIANT') statusClass = 'badge-high';
+        else if (ctrl.status === 'WARNING') statusClass = 'badge-med';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+          '<td><code>' + ctrl.controlId + '</code></td>' +
+          '<td><span class="badge">' + ctrl.framework + '</span></td>' +
+          '<td><strong>' + ctrl.title + '</strong><br><span style="font-size: 0.8rem; opacity: 0.75;">' + ctrl.description + '</span></td>' +
+          '<td><span class="' + statusClass + '">' + ctrl.status + '</span></td>' +
+          '<td>' + ctrl.findingsCount + ' finding(s)</td>';
+        cTbody.appendChild(tr);
+      });
+
+      const admTbody = document.getElementById('complianceAdminTableBody');
+      admTbody.innerHTML = '';
+      if (!report.adminPrivileges || report.adminPrivileges.length === 0) {
+        admTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--accent-green); font-weight: 600;">✔ No unauthorized superuser permissions detected.</td></tr>';
+      } else {
+        report.adminPrivileges.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><strong>' + item.profileName + '</strong></td>' +
+            '<td><code>' + item.permission + '</code></td>' +
+            '<td><span class="badge">' + item.riskCategory + '</span></td>' +
+            '<td><span class="badge-high">' + item.severity + '</span></td>' +
+            '<td>' + item.mitigationRecommendation + '</td>';
+          admTbody.appendChild(tr);
+        });
+      }
+
+      const phiTbody = document.getElementById('compliancePhiTableBody');
+      phiTbody.innerHTML = '';
+      if (!report.phiPiiAccesses || report.phiPiiAccesses.length === 0) {
+        phiTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--accent-green); font-weight: 600;">✔ Zero unauthorized ePHI/PII sensitive data access found.</td></tr>';
+      } else {
+        report.phiPiiAccesses.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><strong>' + item.profileName + '</strong></td>' +
+            '<td><code>' + item.objectOrField + '</code></td>' +
+            '<td>' + item.accessGranted + '</td>' +
+            '<td><span class="badge">' + item.dataType + '</span></td>' +
+            '<td><span class="badge-med">' + item.severity + '</span></td>';
+          phiTbody.appendChild(tr);
+        });
+      }
+
+      const sodTbody = document.getElementById('complianceSodTableBody');
+      sodTbody.innerHTML = '';
+      if (!report.sodViolations || report.sodViolations.length === 0) {
+        sodTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--accent-green); font-weight: 600;">✔ Zero Segregation of Duties conflicts detected.</td></tr>';
+      } else {
+        report.sodViolations.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            '<td><strong>' + item.profileName + '</strong></td>' +
+            '<td><code>' + item.conflictingPermissions.join('</code> + <code>') + '</code></td>' +
+            '<td>' + item.conflictRationale + '</td>' +
+            '<td><span class="badge-high">' + item.severity + '</span></td>';
+          sodTbody.appendChild(tr);
+        });
+      }
+    }
+
+    function goToPrune(path) {
+      const el = document.getElementById('pruneProfileSelect');
+      if (el) el.value = path;
+      switchTab('tab-prune');
+    }
+
+    function goToDrift(path) {
+      const sel = document.getElementById('driftBaseSelect');
+      if (sel) sel.value = path;
+      const inp = document.getElementById('driftBasePath');
+      if (inp) inp.value = path;
+      switchTab('tab-drift');
+    }
+
     window.addEventListener('message', event => {
       const msg = event.data;
       switch (msg.type) {
+        case 'leastPrivilegeReport':
+          renderLeastPrivilegeReport(msg.report, msg.profileName);
+          break;
+        case 'leastPrivilegeError':
+          showStatus('pruneStatus', '<span style="color: var(--accent-rose);">✖ ' + msg.error + '</span>');
+          break;
+        case 'driftReportSingle':
+          renderDriftReportSingle(msg.report);
+          break;
+        case 'driftReportMulti':
+          renderDriftReportMulti(msg.report);
+          break;
+        case 'driftError':
+          showStatus('driftStatus', '<span style="color: var(--accent-rose);">✖ ' + msg.error + '</span>');
+          break;
+        case 'complianceReport':
+          renderComplianceReport(msg.report);
+          break;
+        case 'complianceError':
+          showStatus('complianceStatus', '<span style="color: var(--accent-rose);">✖ ' + msg.error + '</span>');
+          break;
         case 'switchTab':
           switchTab(msg.tabId);
           break;
@@ -1700,10 +2504,14 @@ export class MigrationStudioPanel {
       const decomposeSelect = document.getElementById('decomposeSelect');
       const stripSelect = document.getElementById('stripProfileSelect');
       const pipeSelect = document.getElementById('pipelineProfileSelect');
+      const pruneSelect = document.getElementById('pruneProfileSelect');
+      const driftSelect = document.getElementById('driftBaseSelect');
 
       matrixSelect.innerHTML = '';
       decomposeSelect.innerHTML = '';
       stripSelect.innerHTML = '';
+      if (pruneSelect) pruneSelect.innerHTML = '';
+      if (driftSelect) driftSelect.innerHTML = '';
       pipeSelect.innerHTML = '<option value="">All Discovered Profiles in Workspace</option>';
 
       if (profiles.length === 0) {
@@ -1723,6 +2531,8 @@ export class MigrationStudioPanel {
         matrixSelect.appendChild(opt.cloneNode(true));
         decomposeSelect.appendChild(opt.cloneNode(true));
         stripSelect.appendChild(opt.cloneNode(true));
+        if (pruneSelect) pruneSelect.appendChild(opt.cloneNode(true));
+        if (driftSelect) driftSelect.appendChild(opt.cloneNode(true));
 
         const pipeOpt = document.createElement('option');
         pipeOpt.value = p.name;
@@ -1742,9 +2552,11 @@ export class MigrationStudioPanel {
           '<td>' + (p.highRiskFlags.length > 0 ? '<span class="badge-high">⚠️ ' + p.highRiskFlags.length + '</span>' : '0') + '</td>' +
           '<td><span class="' + badgeClass + '">' + p.complexityScore + '/100</span></td>' +
           '<td>' +
-            '<button class="btn btn-secondary" style="margin-right: 6px;" onclick="goToMatrix(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">📊 Parity Matrix</button>' +
-            '<button class="btn" style="margin-right: 6px;" onclick="goToDecompose(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">Decompose</button>' +
-            '<button class="btn btn-secondary" onclick="cloudDeployProfile(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">⚡ Deploy to Org</button>' +
+            '<button class="btn btn-secondary" style="margin-right: 4px; padding: 5px 8px; font-size: 0.78rem;" onclick="goToMatrix(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">📊 Matrix</button>' +
+            '<button class="btn" style="margin-right: 4px; padding: 5px 8px; font-size: 0.78rem;" onclick="goToDecompose(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">🔨 Decompose</button>' +
+            '<button class="btn btn-secondary" style="margin-right: 4px; padding: 5px 8px; font-size: 0.78rem;" onclick="goToPrune(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">🎯 Prune</button>' +
+            '<button class="btn btn-secondary" style="margin-right: 4px; padding: 5px 8px; font-size: 0.78rem;" onclick="goToDrift(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">🔍 Drift</button>' +
+            '<button class="btn btn-secondary" style="padding: 5px 8px; font-size: 0.78rem;" onclick="cloudDeployProfile(\\'' + p.filePath.replace(/\\\\/g, '\\\\\\\\') + '\\')">⚡ Deploy</button>' +
           '</td>';
         tbody.appendChild(tr);
       });
@@ -1759,7 +2571,7 @@ export class MigrationStudioPanel {
     }
 
     function setSelected(profilePath) {
-      const selects = ['decomposeSelect', 'matrixProfileSelect', 'stripProfileSelect'];
+      const selects = ['decomposeSelect', 'matrixProfileSelect', 'stripProfileSelect', 'pruneProfileSelect', 'driftBaseSelect'];
       selects.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = profilePath;

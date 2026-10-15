@@ -11,7 +11,7 @@
 [![Documentation](https://img.shields.io/badge/Documentation-GitHub%20Pages-blue.svg)](https://visparashar.github.io/permforge/)
 [![Node.js CI](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
+[![Tests](https://img.shields.io/badge/Tests-75%2F75%20Passing-brightgreen.svg)](https://github.com/visparashar/permforge)
 [![MCP Native](https://img.shields.io/badge/MCP-Compatible-9cf.svg)](https://modelcontextprotocol.io/)
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](vscode-extension)
 
@@ -44,8 +44,8 @@ flowchart LR
     B --> C["3. MODULARIZE<br/>decompose / cluster"]
     C --> D["4. VERIFY<br/>verify (100% Parity)"]
     D --> E["5. SANITIZE<br/>strip / clean"]
-    E --> F["6. GOVERN<br/>lint / graph"]
-    F --> G["7. DEPLOY<br/>pipeline --deploy"]
+    E --> F["6. GOVERN<br/>lint / drift / pr-bot"]
+    F --> G["7. DEPLOY & ASSIGN<br/>pipeline / assign"]
 ```
 
 ### 🎥 Live Demo: Migrating Salesforce NPSP (Nonprofit Success Pack)
@@ -85,7 +85,7 @@ Prefer an interactive GUI? Use the official **[PermForge VS Code Extension](vsco
 ```bash
 # Package and install locally
 npm run package:vscode
-code --install-extension vscode-extension/vscode-permforge-1.0.0.vsix
+code --install-extension vscode-extension/vscode-permforge-2.0.0.vsix
 ```
 
 ---
@@ -107,7 +107,14 @@ code --install-extension vscode-extension/vscode-permforge-1.0.0.vsix
 | **`permforge lint`**                 | CI/CD pre-commit and PR scanner to enforce the zero-profile-permissions standard.                                     |
 | **`permforge graph`**                | Visualizes permission architecture hierarchy (PSG -> Permission Sets -> SObjects) in ASCII or Mermaid.                |
 | **`permforge plan`**                 | Generates user assignment CSV templates, migration shell scripts, and rollback procedures.                            |
+| **`permforge advise`**               | Dynamic Forms readiness advisor and non-default Record Type decoupler (Salesforce 2026).                              |
+| **`permforge assign`**               | Live user reassignment from Profiles to PSGs with preview, dry-run simulation, and 1-click rollback.                  |
+| **`permforge prune`**                | Usage-driven least-privilege optimizer parsing Event Monitoring telemetry logs to eliminate dormant access.            |
+| **`permforge drift`**                | Cross-environment drift guard detecting permission drift between branches or live orgs with auto-reconciliation.       |
+| **`permforge compliance`**           | Audits profiles against SOC 2, HIPAA, and ISO 27001 and generates interactive HTML/CSV evidence packages.            |
+| **`permforge pr-bot`**               | Automated GitHub Actions PR review bot generating visual security badges, risk callouts, and drift diffs.             |
 | **`permforge wizard`**               | Interactive, guided terminal wizard with arrow-key menus.                                                             |
+| **`permforge mcp`**                  | Launches native Model Context Protocol (MCP) server for autonomous AI coding assistants.                             |
 
 ---
 
@@ -485,6 +492,122 @@ npx -y permforge mcp
 
 ---
 
+### 14. `permforge advise` (Salesforce 2026 Dynamic Forms & Record Type Advisor)
+
+Audits profiles for Dynamic Forms readiness and decouples non-default Record Types into standalone Permission Sets according to Salesforce 2026 permissions retirement rules:
+
+```bash
+# Audit a profile or directory for Dynamic Forms readiness
+permforge advise --source force-app/main/default/profiles/Sales_User.profile-meta.xml
+
+# Generate decoupled Permission Sets for non-default Record Types
+permforge advise --source force-app/main/default/profiles --decouple-record-types --output-dir force-app/main/default
+
+# Separate decoupled record types into per-object Permission Sets
+permforge advise --source force-app/main/default/profiles --decouple-record-types --separate-by-object
+```
+
+---
+
+### 15. `permforge assign` (Automated User Reassignment & Rollback Engine)
+
+Automates live user migrations from legacy profiles to generated Permission Set Groups or Permission Sets with preview, dry-run simulation, and 1-click rollback file generation:
+
+```bash
+# Preview and simulate assignment of active users without modifying live org
+permforge assign --profile "Custom Admin" --target Custom_Admin_PSG --dry-run
+
+# Execute assignment and generate instant rollback manifest
+permforge assign --profile "Custom Admin" --target Custom_Admin_PSG --target-org my-sandbox
+
+# 1-Click Rollback previous assignments using generated manifest JSON
+permforge assign --rollback output/rollbacks/assignment-rollback-Custom_Admin-1729000000000.json
+```
+
+---
+
+### 16. `permforge prune` (Usage-Driven Least-Privilege Optimization)
+
+Ingests Salesforce Event Monitoring logs (CSV or JSON telemetry from `UriEvent`, `RestApiEvent`, `ApexExecution`, `ApiEvent`) to detect dormant, unexercised permissions, calculate Over-Privilege scores, and generate true least-privilege Permission Sets or Muting Sets:
+
+```bash
+# Audit profile against actual telemetry events and inspect dormant permissions
+permforge prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv
+
+# Generate a stripped least-privilege Permission Set retaining only actively exercised access
+permforge prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv --mode prune --output-dir force-app/main/default
+
+# Generate a targeted Muting Permission Set silencing dormant delete/modify/admin grants
+permforge prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv --mode mute --output-dir force-app/main/default
+```
+
+---
+
+### 17. `permforge drift` (Cross-Environment Drift Guard)
+
+Detects permission drift between Git branches, environments, or live Salesforce orgs (SObject CRUD, FLS, Apex classes, User Permissions). Automatically marks critical privilege escalations (`ModifyAllData`, `ModifyAllRecords`) as **CRITICAL** and generates reconciliation Permission Sets:
+
+```bash
+# Compare a local profile against a staging profile
+permforge drift --base force-app/main/default/profiles/Sales_User.profile-meta.xml --target staging/profiles/Sales_User.profile-meta.xml
+
+# Compare local repository against a live sandbox org
+permforge drift --base force-app/main/default/profiles --target-org my-sandbox
+
+# Automatically generate a reconciliation Permission Set for detected target drifts
+permforge drift --base force-app/main/default/profiles --target staging/profiles --reconcile --output-dir force-app/main/default
+
+# Enforce zero-drift in CI/CD pipeline (fails with non-zero exit code if drift detected)
+permforge drift --base force-app/main/default/profiles --target staging/profiles --fail-on-drift
+```
+
+---
+
+### 18. `permforge compliance` (SOC 2, HIPAA & ISO 27001 Auditor Evidence Packages)
+
+Audits profiles against regulatory frameworks to detect superuser risks, Segregation of Duties (SoD) conflicts, and ePHI/PII exposure, automatically generating auditor-ready evidence packages:
+
+```bash
+# Audit all profiles against SOC 2, HIPAA, and ISO 27001
+permforge compliance --source force-app/main/default/profiles
+
+# Audit specifically for SOC 2 Type II and export compliance evidence package
+permforge compliance --framework soc2 --output-dir reports/soc2-audit
+
+# Fail CI/CD gate if critical compliance violations exist
+permforge compliance --framework hipaa --fail-on-violation
+
+# Output machine-readable JSON for compliance orchestration platforms
+permforge compliance --json
+```
+
+**Generated Compliance Artifacts:**
+- `reports/compliance/compliance_audit_report.html`: Standalone interactive HTML report with controls scorecard and superuser matrices.
+- `reports/compliance/compliance_access_matrix.csv`: Complete CSV access matrix for auditor ingestion.
+- `reports/compliance/compliance_summary.md`: Executive Markdown summary for security teams.
+
+---
+
+### 19. `permforge pr-bot` (Automated GitHub Actions PR Bot)
+
+Analyzes Pull Request metadata changes, generates visual Markdown review comments with status badges, complexity metrics, risk callout alerts (`> [!CAUTION]`), and drift tables, and posts directly to GitHub PRs via the REST API:
+
+```bash
+# Generate visual review comment for modified PR metadata
+permforge pr-bot --source force-app/main/default/profiles
+
+# Compare PR branch against base branch to highlight added/modified permissions
+permforge pr-bot --source force-app/main/default/profiles --base main-branch/profiles
+
+# Post review comment directly onto GitHub Pull Request in CI
+permforge pr-bot --source force-app/main/default/profiles --post --pr-number 42 --repo myorg/myrepo --token $GITHUB_TOKEN
+
+# Fail PR if critical administrative privileges are introduced
+permforge pr-bot --source force-app/main/default/profiles --fail-on-risk
+```
+
+---
+
 ## 🤖 AI Agent & Model Context Protocol (MCP) Integration
 
 PermForge comes with first-class **Model Context Protocol (MCP)** support built-in. AI coding agents can directly read your Salesforce metadata, audit profile complexity, decompose profiles, verify access parity, and enforce zero-profile-permissions policies autonomously.
@@ -543,17 +666,25 @@ Add PermForge to your MCP configuration file:
 | `permforge_uap`                | Generates native Salesforce `UserAccessPolicy` metadata for automated user provisioning.                                                              |
 | `permforge_mute`               | Generates `MutingPermissionSet` metadata to restrict actions (e.g. Delete) on a PSG.                                                                  |
 | `permforge_graph`              | Emits interactive Mermaid diagrams or ASCII trees of the permission hierarchy.                                                                        |
+| `permforge_assign_users`       | Reassigns users from legacy profiles to Permission Set Groups with preview, dry-run simulation, and rollback generation.                               |
+| `permforge_rollback_assignment`| Reverts previous user assignments using a PermForge rollback manifest JSON file.                                                                      |
+| `permforge_advise_modernization`| Audits profiles for Dynamic Forms readiness and decouples non-default Record Types into Permission Sets.                                              |
+| `permforge_least_privilege_audit`| Audits profile against Event Monitoring logs to detect dormant access, compute over-privilege score, and generate pruned/muting sets.               |
+| `permforge_detect_drift`       | Detects permission drift across branches, environments, or live orgs with optional auto-reconciliation.                                              |
+| `permforge_compliance_audit`   | Audits profiles for SOC 2, HIPAA, and ISO 27001 compliance and exports interactive HTML/CSV evidence packages.                                       |
+| `permforge_pr_review`          | Automated PR review generator emitting visual Markdown cards with complexity scores, security badges, and drift diffs.                                |
 
 ---
 
 ### 💬 Example Prompts to Give Your AI Assistant
 
+- _"Audit all profiles in `force-app/main/default/profiles` against SOC 2 and HIPAA compliance and export the evidence packages."_
+- _"Run a least-privilege audit on `Sales_User` using our Event Monitoring telemetry in `events.csv` and generate a pruned permission set."_
+- _"Detect permission drift between our local profiles in `force-app/main/default/profiles` and our live sandbox `my-sandbox`."_
+- _"Run an automated PR review on changed profiles and generate the Markdown review comment."_
 - _"Run the full PermForge migration pipeline on our profiles with clustering enabled in dry-run mode and verify 100% parity."_
-- _"Analyze all profiles in `force-app/main/default/profiles` and list any with high-risk security grants."_
 - _"Decompose `Sales_User.profile-meta.xml` into domain permission sets and verify access parity."_
-- _"Cluster our profiles with a 75% threshold to extract a shared base user permission set."_
-- _"Lint our repository profiles and tell me if any contain deprecated permissions."_
-- _"Generate a User Access Policy that auto-assigns `Sales_User_PSG` when Department is Sales."_
+- _"Simulate user reassignment from profile 'Custom Admin' to 'Custom_Admin_PSG' in dry-run mode."_
 
 ---
 
@@ -672,13 +803,13 @@ npm run build
 
 ## 🗺️ Product & Technical Roadmap
 
-PermForge is actively developed with a multi-phase roadmap towards the Salesforce Profile Permissions Retirement deadline:
+PermForge is the complete enterprise platform for the Salesforce Profile Permissions Retirement deadline:
 
-- **v1.0 – v1.2 (Current):** Core decomposition engine, mathematical parity verification, cross-profile clustering, native MCP server, and NPSP validation.
-- **v1.3.0 (Q2 2026):** Record Type decoupling and Dynamic Forms modernization advisor.
-- **v1.4.0 (Q3 2026):** Native `@salesforce/plugin-permforge` (`sf permforge`) CLI plugin with direct org connectivity and automated user reassignment.
-- **v1.5.0 (Q4 2026):** Usage-driven least-privilege optimization using Salesforce Event Monitoring logs.
-- **v2.0.0 (2027):** Cross-environment drift guard, GitHub Actions PR bot, and SOC2/HIPAA compliance export packages.
+- ✅ **v1.0 – v1.2:** Core decomposition engine, mathematical parity verification, cross-profile clustering, native MCP server, and NPSP validation.
+- ✅ **v1.3.0:** Record Type decoupling and Dynamic Forms modernization advisor (`permforge advise`).
+- ✅ **v1.4.0:** Direct org connectivity and automated live user reassignment with rollback (`permforge assign`).
+- ✅ **v1.5.0:** Usage-driven least-privilege optimization using Salesforce Event Monitoring logs (`permforge prune`).
+- ✅ **v2.0.0 (Latest Release):** Cross-environment drift guard (`permforge drift`), GitHub Actions automated PR review bot (`permforge pr-bot`), and SOC 2/HIPAA compliance evidence packages (`permforge compliance`).
 
 See the complete [Product & Technical Roadmap](ROADMAP.md) for details.
 

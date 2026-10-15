@@ -544,7 +544,7 @@ export function createMcpServer(): Server {
   const server = new Server(
     {
       name: 'permforge',
-      version: '1.3.1',
+      version: '2.0.0',
     },
     {
       capabilities: {

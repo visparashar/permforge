@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-10-15
+
+### Added
+
+- **Cross-Environment Drift Guard (`permforge drift`)**:
+  - Compares permissions between environments (e.g. Local Git Repo vs. Target Org, Sandbox vs. Production, or two Git branches).
+  - Detects added, removed, and modified SObject CRUD, Field FLS, Apex classes, User Permissions, and Custom Permissions.
+  - Automatically assesses severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `NONE`) and flags dangerous escalations (`ModifyAllData`, `ModifyAllRecords`).
+  - **Auto-Reconciliation Generator**: Generates `<Profile>_Drift_Reconciliation.permissionset-meta.xml` to immediately synchronize drift.
+  - Direct live org comparison via Metadata API (`--target-org`).
+- **SOC 2, HIPAA & ISO 27001 Compliance Evidence Packages (`permforge compliance`)**:
+  - **SOC 2 Type II (CC6.1/CC6.2/CC6.3)**: Audits administrative superuser permissions and flags **Segregation of Duties (SoD)** violations (e.g. `AuthorApex` + `ModifyAllData`).
+  - **HIPAA Technical Safeguards (§ 164.312)**: Audits ePHI / PII data safeguards across patient, diagnosis, medical, and contact fields, and detects mass data exfiltration capabilities (`ExportReport`, `BulkApiHardDelete`).
+  - **ISO 27001 (A.9.2)**: Flags password expiration policy violations (`PasswordNeverExpires`).
+  - **1-Click Auditor Evidence Generator**: Exports standalone interactive HTML report (`compliance_audit_report.html`), complete CSV access matrix (`compliance_access_matrix.csv`), and executive Markdown summary (`compliance_summary.md`).
+- **Automated GitHub Actions PR Bot (`permforge pr-bot` / `pr-review`)**:
+  - Scans PR-modified profile metadata and performs automated security, parity, and drift analysis against base branches.
+  - Posts or updates rich GitHub-flavored Markdown review comments with status badges, complexity metrics, callout alerts (`> [!CAUTION]`), and drift tables directly on pull requests.
+  - Connects to GitHub REST API via `--post` with `GITHUB_TOKEN` and `GITHUB_REPOSITORY`.
+- **Usage-Driven Least-Privilege Optimization (`permforge prune`)**:
+  - Ingests and parses Salesforce Event Monitoring telemetry (CSV/JSON from `UriEvent`, `RestApiEvent`, `ApexExecution`, `ApiEvent`).
+  - Computes activity footprint vs. granted permissions to calculate **Utilization Rate %** and **Over-Privilege Score %**.
+  - Generates pruned least-privilege Permission Sets (`<Profile>_LeastPrivilege.permissionset-meta.xml`) and targeted Muting Permission Sets (`<Profile>_Mute_Dormant.mutingpermissionset-meta.xml`).
+- **Automated User Reassignment & Rollback Engine (`permforge assign`)**:
+  - Discovers profile users and plans live reassignment to generated Permission Set Groups or Permission Sets.
+  - Simulates assignments with dry-run mode (`--dry-run`) displaying planned assignments and skipping active assignments.
+  - Generates 1-click rollback manifest JSON files with instant rollback capability (`--rollback`).
+- **Record Type Decoupling & Dynamic Forms Advisor (`permforge advise`)**:
+  - Audits profiles for Salesforce 2026 Dynamic Forms readiness.
+  - Decouples non-default visible Record Types into standalone Permission Sets while keeping default Record Types on Profiles as required by Salesforce.
+- **19 Native Model Context Protocol (MCP) Tools**:
+  - Added `permforge_least_privilege_audit`, `permforge_detect_drift`, `permforge_compliance_audit`, `permforge_pr_review`, `permforge_assign_users`, `permforge_rollback_assignment`, and `permforge_advise_modernization`.
+- **Comprehensive Test Suite**:
+  - Expanded to **75 automated unit and CLI integration tests across 23 test suites** with 100% pass rate.
+
+---
+
 ## [1.3.0] - 2026-10-14
 
 ### Added

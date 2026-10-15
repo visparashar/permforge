@@ -2,7 +2,7 @@
   "name": "vscode-permforge",
   "displayName": "PermForge: Salesforce Profile Migration & Parity Studio",
   "description": "Visual migration studio to decompose Salesforce profiles into modular Permission Sets and Permission Set Groups with 100% mathematical parity verification.",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "publisher": "permforge",
   "repository": {
     "type": "git",
