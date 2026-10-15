@@ -23,6 +23,9 @@ import { XmlEngine } from '../parser/xml-engine.js';
 import { SalesforceOrgService } from '../services/salesforce-org.js';
 import { ModernizationAdvisor } from '../engine/modernization-advisor.js';
 import { LeastPrivilegeEngine } from '../engine/least-privilege-engine.js';
+import { DriftEngine } from '../engine/drift-engine.js';
+import { ComplianceEngine } from '../engine/compliance-engine.js';
+import { PrBotEngine } from '../engine/pr-bot-engine.js';
 import { DecompositionStrategy } from '../types/decomposition.js';
 
 const TOOLS: Tool[] = [
@@ -454,6 +457,87 @@ const TOOLS: Tool[] = [
       required: ['profilePath'],
     },
   },
+  {
+    name: 'permforge_detect_drift',
+    description:
+      'Detect and analyze permission drift between environments, branches, or live Salesforce orgs (Object CRUD, FLS, Apex classes, and User Permissions).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        basePath: {
+          type: 'string',
+          description: 'Path to base profile XML file or profiles directory',
+        },
+        targetPath: {
+          type: 'string',
+          description: 'Path to target profile XML file or profiles directory',
+        },
+        reconcile: {
+          type: 'boolean',
+          description: 'Generate reconciliation Permission Set containing drifted permissions',
+          default: false,
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Destination directory for generated reconciliation Permission Sets',
+        },
+      },
+      required: ['basePath', 'targetPath'],
+    },
+  },
+  {
+    name: 'permforge_compliance_audit',
+    description:
+      'Audit Salesforce profiles against SOC 2, HIPAA, and ISO 27001 regulatory frameworks to detect superuser risks, Segregation of Duties conflicts, and ePHI/PII exposure.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          description:
+            'Path to profile file, directory, or glob pattern (defaults to force-app/main/default/profiles)',
+        },
+        framework: {
+          type: 'string',
+          enum: ['soc2', 'hipaa', 'iso27001', 'all'],
+          description: 'Compliance framework to audit against (defaults to all)',
+          default: 'all',
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Destination directory for generated compliance evidence packages (HTML/CSV/Markdown)',
+        },
+        exportArtifacts: {
+          type: 'boolean',
+          description: 'Whether to write auditor evidence packages to disk',
+          default: true,
+        },
+      },
+    },
+  },
+  {
+    name: 'permforge_pr_review',
+    description:
+      'Analyze Pull Request permission changes, generate automated GitHub Markdown review comment with risk diffs, complexity scores, and linter warnings.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          description:
+            'Path to profile file, directory, or glob pattern modified in the PR (defaults to force-app/main/default/profiles)',
+        },
+        base: {
+          type: 'string',
+          description: 'Path to base branch profiles directory or file for delta drift comparison',
+        },
+        outputFile: {
+          type: 'string',
+          description: 'File path to save the generated Markdown PR comment',
+        },
+      },
+    },
+  },
 ];
 
 export function createMcpServer(): Server {
@@ -484,6 +568,9 @@ export function createMcpServer(): Server {
   const orgService = new SalesforceOrgService(xmlEngine);
   const advisor = new ModernizationAdvisor(xmlEngine);
   const leastPrivilegeEngine = new LeastPrivilegeEngine(xmlEngine, muteBuilder);
+  const driftEngine = new DriftEngine(xmlEngine);
+  const complianceEngine = new ComplianceEngine();
+  const prBotEngine = new PrBotEngine(analyzer, linter, driftEngine);
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOLS };
@@ -853,6 +940,66 @@ export function createMcpServer(): Server {
 
           return {
             content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+          };
+        }
+
+        case 'permforge_detect_drift': {
+          const basePath = args.basePath as string;
+          const targetPath = args.targetPath as string;
+          const reconcile = Boolean(args.reconcile);
+          const outputDir = args.outputDir as string | undefined;
+
+          const baseProfiles = await reader.loadProfiles(basePath);
+          const targetProfiles = await reader.loadProfiles(targetPath);
+
+          const driftResult = driftEngine.compareProfileCollections(baseProfiles, targetProfiles, {
+            baseLabel: basePath,
+            targetLabel: targetPath,
+            generateReconciliation: reconcile,
+            reconciliationOutputDir: outputDir,
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(driftResult, null, 2) }],
+          };
+        }
+
+        case 'permforge_compliance_audit': {
+          const source = (args.source as string) || 'force-app/main/default/profiles';
+          const framework = (args.framework as any) || 'all';
+          const outputDir = args.outputDir as string | undefined;
+          const exportArtifacts = args.exportArtifacts !== false;
+
+          const profiles = await reader.loadProfiles(source);
+          const report = complianceEngine.auditCompliance(profiles, {
+            framework,
+            outputDir,
+            generateArtifacts: exportArtifacts,
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+          };
+        }
+
+        case 'permforge_pr_review': {
+          const source = (args.source as string) || 'force-app/main/default/profiles';
+          const base = args.base as string | undefined;
+          const outputFile = args.outputFile as string | undefined;
+
+          const profiles = await reader.loadProfiles(source);
+          let baseProfiles: any[] | undefined;
+          if (base) {
+            baseProfiles = await reader.loadProfiles(base);
+          }
+
+          const review = prBotEngine.generatePrReview(profiles, {
+            baseProfiles,
+            outputFile,
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(review, null, 2) }],
           };
         }
 

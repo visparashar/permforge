@@ -288,6 +288,84 @@
         "cluster.js"
       ]
     },
+    "compliance": {
+      "aliases": [],
+      "args": {},
+      "description": "Audit profiles for SOC 2, HIPAA, and ISO 27001 compliance and generate auditable evidence packages (HTML/CSV/Markdown)",
+      "examples": [
+        "<%= config.bin %> compliance --source force-app/main/default/profiles",
+        "<%= config.bin %> compliance --framework soc2 --output-dir reports/soc2-audit",
+        "<%= config.bin %> compliance --framework hipaa --fail-on-violation",
+        "<%= config.bin %> compliance --json"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profile file, directory, or glob pattern",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "framework": {
+          "char": "f",
+          "description": "Compliance framework to audit against",
+          "name": "framework",
+          "default": "all",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "soc2",
+            "hipaa",
+            "iso27001",
+            "all"
+          ],
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated compliance package evidence files",
+          "name": "output-dir",
+          "default": "reports/compliance",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "export": {
+          "description": "Generate full auditor evidence package (HTML, CSV matrix, Markdown)",
+          "name": "export",
+          "allowNo": true,
+          "type": "boolean"
+        },
+        "fail-on-violation": {
+          "description": "Exit with non-zero exit code if non-compliant violations are discovered",
+          "name": "fail-on-violation",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "compliance",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "compliance.js"
+      ]
+    },
     "decompose": {
       "aliases": [],
       "args": {},
@@ -369,6 +447,87 @@
         "dist",
         "commands",
         "decompose.js"
+      ]
+    },
+    "drift": {
+      "aliases": [],
+      "args": {},
+      "description": "Detect permission drift between environments (e.g. Local Repo vs. Target Org, Sandbox vs. Production, or two profile branches)",
+      "examples": [
+        "<%= config.bin %> drift --base force-app/main/default/profiles/Sales_User.profile-meta.xml --target staging/Sales_User.profile-meta.xml",
+        "<%= config.bin %> drift --base force-app/main/default/profiles --target staging/profiles",
+        "<%= config.bin %> drift --base force-app/main/default/profiles/Sales_User.profile-meta.xml --target-org my-sandbox",
+        "<%= config.bin %> drift --base force-app/main/default/profiles --target staging/profiles --reconcile --output-dir force-app/main/default",
+        "<%= config.bin %> drift --base force-app/main/default/profiles --target staging/profiles --fail-on-drift",
+        "<%= config.bin %> drift --base force-app/main/default/profiles --target staging/profiles --json"
+      ],
+      "flags": {
+        "base": {
+          "char": "b",
+          "description": "Path to base profile XML file or profiles directory",
+          "name": "base",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "target": {
+          "char": "t",
+          "description": "Path to target profile XML file or profiles directory",
+          "name": "target",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "target-org": {
+          "description": "Salesforce org username or alias to retrieve target profile(s) from for live drift comparison",
+          "name": "target-org",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "reconcile": {
+          "char": "r",
+          "description": "Generate reconciliation Permission Set(s) containing drifted permissions",
+          "name": "reconcile",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated reconciliation Permission Sets",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "fail-on-drift": {
+          "description": "Exit with non-zero exit code if permission drift is detected (CI drift guard)",
+          "name": "fail-on-drift",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "drift",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "drift.js"
       ]
     },
     "graph": {
@@ -761,6 +920,104 @@
         "dist",
         "commands",
         "plan.js"
+      ]
+    },
+    "pr-bot": {
+      "aliases": [
+        "pr-review"
+      ],
+      "args": {},
+      "description": "Analyze Pull Request permission changes, generate visual GitHub PR review comment with risk diffs, and post to GitHub Actions",
+      "examples": [
+        "<%= config.bin %> pr-bot --source force-app/main/default/profiles",
+        "<%= config.bin %> pr-bot --source force-app/main/default/profiles --base main-branch/profiles",
+        "<%= config.bin %> pr-bot --source force-app/main/default/profiles --post --pr-number 42 --repo myorg/myrepo",
+        "<%= config.bin %> pr-bot --source force-app/main/default/profiles --fail-on-risk",
+        "<%= config.bin %> pr-bot --json"
+      ],
+      "flags": {
+        "source": {
+          "char": "s",
+          "description": "Path to profile file, directory, or glob pattern modified in the PR",
+          "name": "source",
+          "default": "force-app/main/default/profiles",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "base": {
+          "char": "b",
+          "description": "Path to base branch profiles directory or file for delta drift comparison",
+          "name": "base",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "pr-number": {
+          "description": "GitHub Pull Request number",
+          "env": "GITHUB_PR_NUMBER",
+          "name": "pr-number",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "repo": {
+          "description": "GitHub repository (owner/repo)",
+          "env": "GITHUB_REPOSITORY",
+          "name": "repo",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "GitHub personal access token or GITHUB_TOKEN",
+          "env": "GITHUB_TOKEN",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-file": {
+          "char": "o",
+          "description": "File path to save the generated Markdown PR comment",
+          "name": "output-file",
+          "default": "pr-review-comment.md",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "post": {
+          "description": "Post the review comment directly to the GitHub PR via API",
+          "name": "post",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "fail-on-risk": {
+          "description": "Exit with non-zero exit code if critical security risks are introduced",
+          "name": "fail-on-risk",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "pr-bot",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "pr-bot.js"
       ]
     },
     "prune": {

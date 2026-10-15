@@ -32,6 +32,9 @@ describe('PermForge MCP Server', () => {
     expect(toolNames).toContain('permforge_rollback_assignment');
     expect(toolNames).toContain('permforge_advise_modernization');
     expect(toolNames).toContain('permforge_least_privilege_audit');
+    expect(toolNames).toContain('permforge_detect_drift');
+    expect(toolNames).toContain('permforge_compliance_audit');
+    expect(toolNames).toContain('permforge_pr_review');
   });
 
   it('should execute permforge_analyze tool successfully', async () => {
@@ -108,5 +111,73 @@ describe('PermForge MCP Server', () => {
     expect(auditReport.exercisedPermissionsCount).toBeGreaterThan(0);
     expect(auditReport.dormantPermissionsCount).toBeGreaterThan(0);
     expect(auditReport.overPrivilegeScore).toBeGreaterThan(0);
+  });
+
+  it('should execute permforge_detect_drift tool successfully', async () => {
+    const callHandler = (server as any)._requestHandlers.get(
+      CallToolRequestSchema.shape.method.value
+    );
+
+    const profilePath = path.join(fixturesDir, 'Sales_User.profile-meta.xml');
+
+    const response = await callHandler({
+      method: 'tools/call',
+      params: {
+        name: 'permforge_detect_drift',
+        arguments: {
+          basePath: profilePath,
+          targetPath: profilePath,
+        },
+      },
+    });
+
+    expect(response.isError).toBeFalsy();
+    const driftResult = JSON.parse(response.content[0].text);
+    expect(driftResult.totalProfilesCompared).toBe(1);
+    expect(driftResult.totalDriftsFound).toBe(0);
+  });
+
+  it('should execute permforge_compliance_audit tool successfully', async () => {
+    const callHandler = (server as any)._requestHandlers.get(
+      CallToolRequestSchema.shape.method.value
+    );
+
+    const response = await callHandler({
+      method: 'tools/call',
+      params: {
+        name: 'permforge_compliance_audit',
+        arguments: {
+          source: fixturesDir,
+          framework: 'all',
+          exportArtifacts: false,
+        },
+      },
+    });
+
+    expect(response.isError).toBeFalsy();
+    const compReport = JSON.parse(response.content[0].text);
+    expect(compReport.totalProfilesAudited).toBe(3);
+    expect(compReport.controlResults.length).toBeGreaterThan(0);
+  });
+
+  it('should execute permforge_pr_review tool successfully', async () => {
+    const callHandler = (server as any)._requestHandlers.get(
+      CallToolRequestSchema.shape.method.value
+    );
+
+    const response = await callHandler({
+      method: 'tools/call',
+      params: {
+        name: 'permforge_pr_review',
+        arguments: {
+          source: fixturesDir,
+        },
+      },
+    });
+
+    expect(response.isError).toBeFalsy();
+    const review = JSON.parse(response.content[0].text);
+    expect(review.impactedProfiles.length).toBe(3);
+    expect(review.markdownComment).toContain('PermForge Automated PR Security & Parity Review');
   });
 });
