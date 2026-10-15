@@ -22,6 +22,7 @@ import { PipelineRunner } from '../engine/pipeline-runner.js';
 import { XmlEngine } from '../parser/xml-engine.js';
 import { SalesforceOrgService } from '../services/salesforce-org.js';
 import { ModernizationAdvisor } from '../engine/modernization-advisor.js';
+import { LeastPrivilegeEngine } from '../engine/least-privilege-engine.js';
 import { DecompositionStrategy } from '../types/decomposition.js';
 
 const TOOLS: Tool[] = [
@@ -412,6 +413,47 @@ const TOOLS: Tool[] = [
       },
     },
   },
+  {
+    name: 'permforge_least_privilege_audit',
+    description:
+      'Audit profile permissions against Salesforce Event Monitoring logs to detect dormant access, compute an over-privilege score, and optionally generate least-privilege or muting permission sets.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        profilePath: {
+          type: 'string',
+          description: 'Path to source profile XML file',
+        },
+        eventsFile: {
+          type: 'string',
+          description: 'Path to Salesforce Event Monitoring CSV/JSON telemetry file',
+        },
+        eventsContent: {
+          type: 'string',
+          description: 'Raw CSV or JSON event telemetry content (alternative to eventsFile)',
+        },
+        mode: {
+          type: 'string',
+          enum: ['audit-only', 'prune', 'mute'],
+          description: 'Remediation mode (defaults to audit-only)',
+          default: 'audit-only',
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Destination directory for generated permission sets (defaults to force-app/main/default)',
+        },
+        prunedName: {
+          type: 'string',
+          description: 'Custom API name for the generated pruned Permission Set',
+        },
+        mutingName: {
+          type: 'string',
+          description: 'Custom API name for the generated Muting Permission Set',
+        },
+      },
+      required: ['profilePath'],
+    },
+  },
 ];
 
 export function createMcpServer(): Server {
@@ -441,6 +483,7 @@ export function createMcpServer(): Server {
   const pipelineRunner = new PipelineRunner();
   const orgService = new SalesforceOrgService(xmlEngine);
   const advisor = new ModernizationAdvisor(xmlEngine);
+  const leastPrivilegeEngine = new LeastPrivilegeEngine(xmlEngine, muteBuilder);
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOLS };
@@ -777,6 +820,39 @@ export function createMcpServer(): Server {
 
           return {
             content: [{ type: 'text', text: JSON.stringify(advisories, null, 2) }],
+          };
+        }
+
+        case 'permforge_least_privilege_audit': {
+          const profilePath = args.profilePath as string;
+          const eventsFile = args.eventsFile as string | undefined;
+          const eventsContent = args.eventsContent as string | undefined;
+          const mode = (args.mode as 'audit-only' | 'prune' | 'mute') || 'audit-only';
+          const outputDir = args.outputDir as string | undefined;
+          const prunedName = args.prunedName as string | undefined;
+          const mutingName = args.mutingName as string | undefined;
+
+          let rawEvents = eventsContent;
+          if (!rawEvents && eventsFile) {
+            rawEvents = await fs.readFile(eventsFile, 'utf-8');
+          }
+          if (!rawEvents) {
+            throw new Error(
+              'Either eventsFile or eventsContent must be provided for least-privilege audit.'
+            );
+          }
+
+          const profile = await reader.loadProfile(profilePath);
+          const footprint = leastPrivilegeEngine.parseEvents(rawEvents);
+          const report = await leastPrivilegeEngine.auditProfile(profile, footprint, {
+            mode,
+            outputDir,
+            prunedName,
+            mutingName,
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
           };
         }
 

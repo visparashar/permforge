@@ -763,6 +763,94 @@
         "plan.js"
       ]
     },
+    "prune": {
+      "aliases": [],
+      "args": {},
+      "description": "Audit profile permissions against Salesforce Event Monitoring logs, calculate over-privilege scores, and generate least-privilege or muting permission sets",
+      "examples": [
+        "<%= config.bin %> prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv",
+        "<%= config.bin %> prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv --mode prune --output-dir force-app/main/default",
+        "<%= config.bin %> prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv --mode mute --output-dir force-app/main/default",
+        "<%= config.bin %> prune --profile force-app/main/default/profiles/Sales_User.profile-meta.xml --events telemetry/events.csv --json"
+      ],
+      "flags": {
+        "profile": {
+          "char": "p",
+          "description": "Path to source profile XML file",
+          "name": "profile",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "events": {
+          "char": "e",
+          "description": "Path to Salesforce Event Monitoring CSV/JSON telemetry file",
+          "name": "events",
+          "required": true,
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "mode": {
+          "char": "m",
+          "description": "Optimization mode: audit-only, prune (generates least-privilege permset), or mute (generates muting permset)",
+          "name": "mode",
+          "default": "audit-only",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "audit-only",
+            "prune",
+            "mute"
+          ],
+          "type": "option"
+        },
+        "output-dir": {
+          "char": "d",
+          "description": "Destination directory for generated permission sets",
+          "name": "output-dir",
+          "default": "force-app/main/default",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "pruned-name": {
+          "description": "Custom API name for the generated pruned Permission Set",
+          "name": "pruned-name",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "muting-name": {
+          "description": "Custom API name for the generated Muting Permission Set",
+          "name": "muting-name",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "prune",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "prune.js"
+      ]
+    },
     "report": {
       "aliases": [],
       "args": {},

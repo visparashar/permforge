@@ -31,6 +31,7 @@ describe('PermForge MCP Server', () => {
     expect(toolNames).toContain('permforge_assign_users');
     expect(toolNames).toContain('permforge_rollback_assignment');
     expect(toolNames).toContain('permforge_advise_modernization');
+    expect(toolNames).toContain('permforge_least_privilege_audit');
   });
 
   it('should execute permforge_analyze tool successfully', async () => {
@@ -78,5 +79,34 @@ describe('PermForge MCP Server', () => {
     const report = JSON.parse(response.content[0].text);
     expect(report.totalProfilesScanned).toBe(3);
     expect(report.totalViolations).toBeGreaterThan(0);
+  });
+
+  it('should execute permforge_least_privilege_audit tool successfully', async () => {
+    const callHandler = (server as any)._requestHandlers.get(
+      CallToolRequestSchema.shape.method.value
+    );
+
+    const profilePath = path.join(fixturesDir, 'Sales_User.profile-meta.xml');
+    const eventsPath = path.join(process.cwd(), 'test/fixtures/event_logs/sample_events.csv');
+
+    const response = await callHandler({
+      method: 'tools/call',
+      params: {
+        name: 'permforge_least_privilege_audit',
+        arguments: {
+          profilePath,
+          eventsFile: eventsPath,
+          mode: 'audit-only',
+        },
+      },
+    });
+
+    expect(response.isError).toBeFalsy();
+    const auditReport = JSON.parse(response.content[0].text);
+    expect(auditReport.profileName).toBe('Sales_User');
+    expect(auditReport.totalPermissionsGranted).toBeGreaterThan(0);
+    expect(auditReport.exercisedPermissionsCount).toBeGreaterThan(0);
+    expect(auditReport.dormantPermissionsCount).toBeGreaterThan(0);
+    expect(auditReport.overPrivilegeScore).toBeGreaterThan(0);
   });
 });
