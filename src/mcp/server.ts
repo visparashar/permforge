@@ -326,13 +326,74 @@ const TOOLS: Tool[] = [
       },
     },
   },
+  {
+    name: 'permforge_assign_users',
+    description:
+      'Assign Salesforce users from legacy profiles to generated Permission Set Groups or Permission Sets with preview, dry-run simulation, and 1-click rollback file generation.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        profile: {
+          type: 'string',
+          description: 'Source Profile name (e.g. "Custom Admin")',
+        },
+        target: {
+          type: 'string',
+          description: 'Destination Permission Set Group or Permission Set name (e.g. "Custom_Admin_PSG")',
+        },
+        targetOrg: {
+          type: 'string',
+          description: 'Salesforce org username or alias (defaults to default SFDX/SF org)',
+        },
+        dryRun: {
+          type: 'boolean',
+          description: 'Simulate assignment without modifying the live org; returns planned assignments and skip counts',
+          default: false,
+        },
+        allUsers: {
+          type: 'boolean',
+          description: 'Include inactive users (default: active users only)',
+          default: false,
+        },
+        userFilter: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Optional list of specific usernames or User IDs to assign',
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Directory where the rollback manifest should be saved (defaults to output/rollbacks)',
+        },
+      },
+      required: ['profile', 'target'],
+    },
+  },
+  {
+    name: 'permforge_rollback_assignment',
+    description:
+      'Roll back previously created Salesforce PermissionSetAssignment records using a PermForge rollback manifest JSON file.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        rollbackFile: {
+          type: 'string',
+          description: 'Path to the assignment-rollback-*.json file',
+        },
+        targetOrg: {
+          type: 'string',
+          description: 'Salesforce org username or alias (defaults to manifest targetOrg)',
+        },
+      },
+      required: ['rollbackFile'],
+    },
+  },
 ];
 
 export function createMcpServer(): Server {
   const server = new Server(
     {
       name: 'permforge',
-      version: '1.2.0',
+      version: '1.3.1',
     },
     {
       capabilities: {
@@ -353,6 +414,7 @@ export function createMcpServer(): Server {
   const muteBuilder = new MuteBuilder();
   const graphBuilder = new GraphBuilder(xmlEngine);
   const pipelineRunner = new PipelineRunner();
+  const orgService = new SalesforceOrgService(xmlEngine);
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: TOOLS };
@@ -626,6 +688,50 @@ export function createMcpServer(): Server {
             },
           });
 
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
+        case 'permforge_assign_users': {
+          const profile = args.profile as string;
+          const target = args.target as string;
+          const targetOrg = args.targetOrg as string | undefined;
+          const dryRun = Boolean(args.dryRun);
+          const allUsers = Boolean(args.allUsers);
+          const userFilter = args.userFilter as string[] | undefined;
+          const outputDir = args.outputDir as string | undefined;
+
+          const plan = await orgService.planUserAssignments(profile, target, targetOrg, {
+            activeOnly: !allUsers,
+            userFilter,
+          });
+
+          if (dryRun) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({ dryRun: true, plan }, null, 2),
+                },
+              ],
+            };
+          }
+
+          const result = await orgService.executeUserAssignments(plan, targetOrg, {
+            rollbackDir: outputDir,
+          });
+
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
+        case 'permforge_rollback_assignment': {
+          const rollbackFile = args.rollbackFile as string;
+          const targetOrg = args.targetOrg as string | undefined;
+
+          const result = await orgService.rollbackUserAssignments(rollbackFile, targetOrg);
           return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
           };

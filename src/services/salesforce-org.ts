@@ -25,6 +25,71 @@ export interface RemoteProfileSummary {
   lastModifiedDate?: string;
 }
 
+export interface UserAssignmentTarget {
+  id: string;
+  name: string;
+  label?: string;
+  type: 'PermissionSetGroup' | 'PermissionSet';
+}
+
+export interface UserToAssign {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  profileId: string;
+  profileName: string;
+  alreadyAssigned?: boolean;
+}
+
+export interface AssignmentPlan {
+  profileName: string;
+  target: UserAssignmentTarget;
+  totalUsersFound: number;
+  activeUsersCount: number;
+  inactiveUsersCount: number;
+  alreadyAssignedCount: number;
+  usersToAssign: UserToAssign[];
+  skippedUsers: UserToAssign[];
+}
+
+export interface AssignmentResult {
+  success: boolean;
+  plan: AssignmentPlan;
+  assignedCount: number;
+  failedCount: number;
+  assignments: {
+    userId: string;
+    username: string;
+    assignmentId?: string;
+    success: boolean;
+    error?: string;
+  }[];
+  rollbackFile?: string;
+}
+
+export interface RollbackResult {
+  success: boolean;
+  deletedCount: number;
+  failedCount: number;
+  errors: string[];
+}
+
+export interface AssignmentRollbackManifest {
+  version: string;
+  timestamp: string;
+  targetOrg: string;
+  profileName: string;
+  target: UserAssignmentTarget;
+  createdAssignmentIds: string[];
+  assignments: {
+    userId: string;
+    username: string;
+    assignmentId: string;
+  }[];
+}
+
 export class SalesforceOrgService {
   private xmlEngine: XmlEngine;
 
@@ -443,6 +508,363 @@ export class SalesforceOrgService {
     return {
       success: errors.length === 0,
       created,
+      errors,
+    };
+  }
+
+  /**
+   * Resolve whether a target name is a PermissionSetGroup or PermissionSet and return its ID
+   */
+  public async resolveAssignmentTarget(
+    targetName: string,
+    targetOrg?: string
+  ): Promise<UserAssignmentTarget> {
+    const conn = this.getConnection(targetOrg);
+    const sanitizedName = targetName.replace(/'/g, "\\'");
+
+    // 1. Try PermissionSetGroup first
+    try {
+      const psgResult = await conn.query<any>(
+        `SELECT Id, DeveloperName, MasterLabel FROM PermissionSetGroup WHERE DeveloperName = '${sanitizedName}' OR Id = '${sanitizedName}' LIMIT 1`
+      );
+      if (psgResult.records && psgResult.records.length > 0) {
+        const r = psgResult.records[0];
+        return {
+          id: r.Id,
+          name: r.DeveloperName,
+          label: r.MasterLabel,
+          type: 'PermissionSetGroup',
+        };
+      }
+    } catch {
+      // ignore, fall back to PermissionSet
+    }
+
+    // 2. Try PermissionSet
+    try {
+      const psResult = await conn.query<any>(
+        `SELECT Id, Name, Label FROM PermissionSet WHERE Name = '${sanitizedName}' OR Id = '${sanitizedName}' LIMIT 1`
+      );
+      if (psResult.records && psResult.records.length > 0) {
+        const r = psResult.records[0];
+        return {
+          id: r.Id,
+          name: r.Name,
+          label: r.Label,
+          type: 'PermissionSet',
+        };
+      }
+    } catch (err: any) {
+      throw new Error(`Failed to query PermissionSet in target org: ${err.message}`);
+    }
+
+    throw new Error(
+      `Target '${targetName}' was not found as a Permission Set Group or Permission Set in org '${targetOrg || 'default'}'.\n` +
+      `Ensure the target has been deployed or created before assigning users.`
+    );
+  }
+
+  /**
+   * Query users assigned to a specific Salesforce profile
+   */
+  public async getProfileUsers(
+    profileName: string,
+    targetOrg?: string,
+    options?: { activeOnly?: boolean; userFilter?: string[] }
+  ): Promise<UserToAssign[]> {
+    const conn = this.getConnection(targetOrg);
+    const sanitizedProfile = profileName.replace(/'/g, "\\'");
+
+    let query = `SELECT Id, Username, Name, Email, IsActive, ProfileId, Profile.Name FROM User WHERE Profile.Name = '${sanitizedProfile}'`;
+    if (options?.activeOnly !== false) {
+      query += ' AND IsActive = true';
+    }
+
+    if (options?.userFilter && options.userFilter.length > 0) {
+      const escapedUsers = options.userFilter.map((u) => `'${u.replace(/'/g, "\\'")}'`).join(',');
+      query += ` AND (Username IN (${escapedUsers}) OR Id IN (${escapedUsers}))`;
+    }
+
+    query += ' ORDER BY Name ASC LIMIT 2000';
+
+    const result = await conn.query<any>(query);
+    return result.records.map((r: any) => ({
+      id: r.Id,
+      username: r.Username,
+      name: r.Name,
+      email: r.Email,
+      isActive: Boolean(r.IsActive),
+      profileId: r.ProfileId,
+      profileName: r.Profile?.Name || profileName,
+    }));
+  }
+
+  /**
+   * Plan user assignments from a Profile to a target PermissionSetGroup or PermissionSet
+   */
+  public async planUserAssignments(
+    profileName: string,
+    targetName: string,
+    targetOrg?: string,
+    options?: { activeOnly?: boolean; userFilter?: string[] }
+  ): Promise<AssignmentPlan> {
+    const target = await this.resolveAssignmentTarget(targetName, targetOrg);
+    const allUsers = await this.getProfileUsers(profileName, targetOrg, {
+      activeOnly: false,
+      userFilter: options?.userFilter,
+    });
+
+    const activeUsers = allUsers.filter((u) => u.isActive);
+    const inactiveUsers = allUsers.filter((u) => !u.isActive);
+
+    const candidates = options?.activeOnly === false ? allUsers : activeUsers;
+
+    if (candidates.length === 0) {
+      return {
+        profileName,
+        target,
+        totalUsersFound: allUsers.length,
+        activeUsersCount: activeUsers.length,
+        inactiveUsersCount: inactiveUsers.length,
+        alreadyAssignedCount: 0,
+        usersToAssign: [],
+        skippedUsers: [],
+      };
+    }
+
+    // Check existing assignments in target org
+    const conn = this.getConnection(targetOrg);
+    const assignedUserIds = new Set<string>();
+
+    const chunkSize = 500;
+    for (let i = 0; i < candidates.length; i += chunkSize) {
+      const chunk = candidates.slice(i, i + chunkSize);
+      const userIdsList = chunk.map((u) => `'${u.id}'`).join(',');
+      const fieldCondition =
+        target.type === 'PermissionSetGroup'
+          ? `PermissionSetGroupId = '${target.id}'`
+          : `PermissionSetId = '${target.id}'`;
+
+      const checkQuery = `SELECT Id, AssigneeId FROM PermissionSetAssignment WHERE AssigneeId IN (${userIdsList}) AND ${fieldCondition}`;
+      try {
+        const checkResult = await conn.query<any>(checkQuery);
+        for (const record of checkResult.records) {
+          assignedUserIds.add(record.AssigneeId);
+        }
+      } catch {
+        // ignore if query fails on older API
+      }
+    }
+
+    const usersToAssign: UserToAssign[] = [];
+    const skippedUsers: UserToAssign[] = [];
+
+    for (const user of candidates) {
+      if (assignedUserIds.has(user.id)) {
+        skippedUsers.push({ ...user, alreadyAssigned: true });
+      } else {
+        usersToAssign.push({ ...user, alreadyAssigned: false });
+      }
+    }
+
+    return {
+      profileName,
+      target,
+      totalUsersFound: allUsers.length,
+      activeUsersCount: activeUsers.length,
+      inactiveUsersCount: inactiveUsers.length,
+      alreadyAssignedCount: skippedUsers.length,
+      usersToAssign,
+      skippedUsers,
+    };
+  }
+
+  /**
+   * Execute planned user assignments against the live Salesforce org and generate a rollback manifest
+   */
+  public async executeUserAssignments(
+    plan: AssignmentPlan,
+    targetOrg?: string,
+    options?: { rollbackDir?: string }
+  ): Promise<AssignmentResult> {
+    if (plan.usersToAssign.length === 0) {
+      return {
+        success: true,
+        plan,
+        assignedCount: 0,
+        failedCount: 0,
+        assignments: [],
+      };
+    }
+
+    const conn = this.getConnection(targetOrg);
+    const assignments: {
+      userId: string;
+      username: string;
+      assignmentId?: string;
+      success: boolean;
+      error?: string;
+    }[] = [];
+
+    const createdIds: string[] = [];
+    const createdForManifest: { userId: string; username: string; assignmentId: string }[] = [];
+
+    // Salesforce allows up to 200 records per DML create
+    const chunkSize = 200;
+    for (let i = 0; i < plan.usersToAssign.length; i += chunkSize) {
+      const chunk = plan.usersToAssign.slice(i, i + chunkSize);
+      const recordsToInsert = chunk.map((user) => {
+        if (plan.target.type === 'PermissionSetGroup') {
+          return {
+            AssigneeId: user.id,
+            PermissionSetGroupId: plan.target.id,
+          };
+        }
+        return {
+          AssigneeId: user.id,
+          PermissionSetId: plan.target.id,
+        };
+      });
+
+      try {
+        const dmlResults = await conn.sobject('PermissionSetAssignment').create(recordsToInsert as any, {
+          allowRecursive: true,
+        });
+        const resultArray = Array.isArray(dmlResults) ? dmlResults : [dmlResults];
+
+        for (let j = 0; j < resultArray.length; j++) {
+          const res = resultArray[j];
+          const user = chunk[j];
+
+          if (res.success && res.id) {
+            createdIds.push(res.id);
+            createdForManifest.push({
+              userId: user.id,
+              username: user.username,
+              assignmentId: res.id,
+            });
+            assignments.push({
+              userId: user.id,
+              username: user.username,
+              assignmentId: res.id,
+              success: true,
+            });
+          } else {
+            const errs = Array.isArray(res.errors) ? res.errors : [res.errors];
+            const msg = errs.map((e: any) => e.message || String(e)).join(', ');
+            assignments.push({
+              userId: user.id,
+              username: user.username,
+              success: false,
+              error: msg || 'Unknown DML error',
+            });
+          }
+        }
+      } catch (err: any) {
+        for (const user of chunk) {
+          assignments.push({
+            userId: user.id,
+            username: user.username,
+            success: false,
+            error: err.message,
+          });
+        }
+      }
+    }
+
+    const assignedCount = assignments.filter((a) => a.success).length;
+    const failedCount = assignments.filter((a) => !a.success).length;
+
+    // Write rollback manifest if any assignments succeeded
+    let rollbackFile: string | undefined;
+    if (createdIds.length > 0) {
+      const rollbackDir = options?.rollbackDir || path.join(process.cwd(), 'output', 'rollbacks');
+      fs.mkdirSync(rollbackDir, { recursive: true });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      rollbackFile = path.join(rollbackDir, `assignment-rollback-${timestamp}.json`);
+
+      const manifest: AssignmentRollbackManifest = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        targetOrg: targetOrg || 'default',
+        profileName: plan.profileName,
+        target: plan.target,
+        createdAssignmentIds: createdIds,
+        assignments: createdForManifest,
+      };
+
+      fs.writeFileSync(rollbackFile, JSON.stringify(manifest, null, 2), 'utf-8');
+    }
+
+    return {
+      success: failedCount === 0,
+      plan,
+      assignedCount,
+      failedCount,
+      assignments,
+      rollbackFile,
+    };
+  }
+
+  /**
+   * Roll back previously created user assignments using a rollback manifest file
+   */
+  public async rollbackUserAssignments(
+    rollbackFilePath: string,
+    targetOrg?: string
+  ): Promise<RollbackResult> {
+    if (!fs.existsSync(rollbackFilePath)) {
+      throw new Error(`Rollback file not found at: ${rollbackFilePath}`);
+    }
+
+    const raw = fs.readFileSync(rollbackFilePath, 'utf-8');
+    let manifest: AssignmentRollbackManifest;
+    try {
+      manifest = JSON.parse(raw);
+    } catch {
+      throw new Error(`Invalid JSON format in rollback file: ${rollbackFilePath}`);
+    }
+
+    if (!manifest.createdAssignmentIds || !Array.isArray(manifest.createdAssignmentIds)) {
+      throw new Error('Rollback file does not contain valid createdAssignmentIds array.');
+    }
+
+    if (manifest.createdAssignmentIds.length === 0) {
+      return { success: true, deletedCount: 0, failedCount: 0, errors: [] };
+    }
+
+    const conn = this.getConnection(targetOrg || manifest.targetOrg);
+    let deletedCount = 0;
+    let failedCount = 0;
+    const errors: string[] = [];
+
+    const chunkSize = 200;
+    for (let i = 0; i < manifest.createdAssignmentIds.length; i += chunkSize) {
+      const chunk = manifest.createdAssignmentIds.slice(i, i + chunkSize);
+      try {
+        const destroyResults = await conn.sobject('PermissionSetAssignment').destroy(chunk);
+        const resultArray = Array.isArray(destroyResults) ? destroyResults : [destroyResults];
+
+        for (const res of resultArray) {
+          if (res.success) {
+            deletedCount++;
+          } else {
+            failedCount++;
+            const errs = Array.isArray(res.errors) ? res.errors : [res.errors];
+            const msg = errs.map((e: any) => e.message || String(e)).join(', ');
+            errors.push(msg);
+          }
+        }
+      } catch (err: any) {
+        failedCount += chunk.length;
+        errors.push(`Rollback batch error: ${err.message}`);
+      }
+    }
+
+    return {
+      success: failedCount === 0,
+      deletedCount,
+      failedCount,
       errors,
     };
   }

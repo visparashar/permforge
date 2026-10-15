@@ -50,6 +50,107 @@
         "analyze.js"
       ]
     },
+    "assign": {
+      "aliases": [],
+      "args": {},
+      "description": "Assign Salesforce users from legacy profiles to generated Permission Set Groups or Permission Sets with 1-click rollback",
+      "examples": [
+        "<%= config.bin %> assign --profile \"Custom Admin\" --psg \"Custom_Admin_PSG\"",
+        "<%= config.bin %> assign --profile \"Sales User\" --psg \"Sales_PSG\" --dry-run",
+        "<%= config.bin %> assign --profile \"Standard User\" --permset \"Baseline_Employee_PS\" --target-org my-sandbox",
+        "<%= config.bin %> assign --rollback output/rollbacks/assignment-rollback-2026-10-15.json"
+      ],
+      "flags": {
+        "profile": {
+          "char": "p",
+          "description": "Source Profile name to query users from (e.g. \"Custom Admin\")",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "psg": {
+          "char": "g",
+          "description": "Destination Permission Set Group API name or DeveloperName (e.g. \"Custom_Admin_PSG\")",
+          "name": "psg",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "permset": {
+          "char": "s",
+          "description": "Destination Permission Set API name (if assigning a single Permission Set rather than a PSG)",
+          "name": "permset",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "target-org": {
+          "char": "o",
+          "description": "Salesforce org username or alias (defaults to default SFDX/SF org)",
+          "name": "target-org",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "dry-run": {
+          "char": "d",
+          "description": "Simulate assignment without touching the org; preview affected users and skip statistics",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "all-users": {
+          "description": "Include inactive users (default: active users only)",
+          "name": "all-users",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "user-filter": {
+          "description": "Optional comma-separated list of specific usernames or User IDs to assign",
+          "name": "user-filter",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "rollback": {
+          "char": "r",
+          "description": "Path to a rollback JSON manifest file to delete previously created assignments",
+          "name": "rollback",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "output-dir": {
+          "description": "Directory to store generated assignment rollback manifests",
+          "name": "output-dir",
+          "default": "output/rollbacks",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "json": {
+          "description": "Format output as JSON",
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "assign",
+      "pluginAlias": "permforge",
+      "pluginName": "permforge",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "assign.js"
+      ]
+    },
     "cluster": {
       "aliases": [],
       "args": {},

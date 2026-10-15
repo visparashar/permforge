@@ -110,6 +110,15 @@ export class MigrationStudioPanel {
           case 'runPipeline':
             await this.handleRunPipeline(message.options);
             return;
+          case 'planUserAssignments':
+            await this.handlePlanUserAssignments(message.targetOrg, message.profileName, message.targetName, message.activeOnly);
+            return;
+          case 'executeUserAssignments':
+            await this.handleExecuteUserAssignments(message.targetOrg, message.plan);
+            return;
+          case 'rollbackUserAssignments':
+            await this.handleRollbackUserAssignments(message.targetOrg, message.rollbackFile);
+            return;
         }
       },
       null,
@@ -579,6 +588,63 @@ export class MigrationStudioPanel {
         type: 'pipelineError',
         error: err.message,
       });
+    }
+  }
+
+  private async handlePlanUserAssignments(targetOrg: string, profileName: string, targetName: string, activeOnly: boolean) {
+    try {
+      const plan = await this.orgService.planUserAssignments(profileName, targetName, targetOrg, { activeOnly });
+      this._panel.webview.postMessage({
+        type: 'assignmentPlanResult',
+        plan,
+      });
+    } catch (err: any) {
+      this._panel.webview.postMessage({
+        type: 'assignmentError',
+        error: err.message,
+      });
+    }
+  }
+
+  private async handleExecuteUserAssignments(targetOrg: string, plan: any) {
+    try {
+      const result = await this.orgService.executeUserAssignments(plan, targetOrg);
+      this._panel.webview.postMessage({
+        type: 'assignmentExecuteResult',
+        result,
+      });
+      if (result.success) {
+        vscode.window.showInformationMessage(`✔ Successfully assigned ${result.assignedCount} user(s) to ${plan.target.name}!`);
+      } else {
+        vscode.window.showWarningMessage(`Assignment completed with warnings: ${result.assignedCount} assigned, ${result.failedCount} failed.`);
+      }
+    } catch (err: any) {
+      this._panel.webview.postMessage({
+        type: 'assignmentError',
+        error: err.message,
+      });
+      vscode.window.showErrorMessage(`Assignment failed: ${err.message}`);
+    }
+  }
+
+  private async handleRollbackUserAssignments(targetOrg: string, rollbackFile: string) {
+    try {
+      const result = await this.orgService.rollbackUserAssignments(rollbackFile, targetOrg);
+      this._panel.webview.postMessage({
+        type: 'assignmentRollbackResult',
+        result,
+      });
+      if (result.success) {
+        vscode.window.showInformationMessage(`✔ Rollback successful: Removed ${result.deletedCount} assignment(s)!`);
+      } else {
+        vscode.window.showWarningMessage(`Rollback finished with warnings: ${result.deletedCount} removed, ${result.failedCount} failed.`);
+      }
+    } catch (err: any) {
+      this._panel.webview.postMessage({
+        type: 'assignmentError',
+        error: err.message,
+      });
+      vscode.window.showErrorMessage(`Rollback failed: ${err.message}`);
     }
   }
 
@@ -1068,6 +1134,38 @@ export class MigrationStudioPanel {
       </div>
 
       <div class="status-box" id="cloudStatus"></div>
+
+      <div class="card" style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px; background: rgba(0,0,0,0.15);">
+        <h4 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          👥 Automated User Reassignment &amp; 1-Click Rollback
+        </h4>
+        <p style="opacity: 0.8; margin-bottom: 16px; font-size: 0.88rem;">
+          Query all users on a legacy profile and assign them to the new Permission Set Group or Permission Set in bulk.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Source Profile Name:</label>
+            <input type="text" id="reassignProfile" placeholder="e.g. Custom Admin">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Target PSG / Permission Set API Name:</label>
+            <input type="text" id="reassignTarget" placeholder="e.g. Custom_Admin_PSG">
+          </div>
+        </div>
+        <div style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem;">
+            <input type="checkbox" id="reassignActiveOnly" checked> Active Users Only
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem;">
+            <input type="checkbox" id="reassignDryRun" checked> Dry Run (Preview Only)
+          </label>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="triggerReassignPlan()">🔍 Plan / Preview Assignments</button>
+          <button class="btn btn-success" id="btnExecuteReassign" style="display: none;" onclick="triggerExecuteReassign()">⚡ Execute Assignments</button>
+        </div>
+        <div id="reassignStatus" class="status-box" style="margin-top: 12px;"></div>
+      </div>
     </div>
   </div>
 
@@ -1279,12 +1377,108 @@ export class MigrationStudioPanel {
       });
     }
 
+    let currentReassignPlan = null;
+
+    function triggerReassignPlan() {
+      const org = getSelectedTargetOrg();
+      const profile = document.getElementById('reassignProfile').value.trim();
+      const target = document.getElementById('reassignTarget').value.trim();
+      const activeOnly = document.getElementById('reassignActiveOnly').checked;
+
+      if (!profile || !target) {
+        alert('Please specify both Source Profile and Target PSG / Permission Set API Name.');
+        return;
+      }
+
+      const status = document.getElementById('reassignStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-cyan);">⏳ Querying org and computing assignment plan...</span>';
+      document.getElementById('btnExecuteReassign').style.display = 'none';
+
+      vscode.postMessage({
+        command: 'planUserAssignments',
+        targetOrg: org,
+        profileName: profile,
+        targetName: target,
+        activeOnly: activeOnly
+      });
+    }
+
+    function triggerExecuteReassign() {
+      if (!currentReassignPlan) return;
+      const org = getSelectedTargetOrg();
+      const status = document.getElementById('reassignStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-cyan);">⚡ Creating PermissionSetAssignment records in Salesforce...</span>';
+
+      vscode.postMessage({
+        command: 'executeUserAssignments',
+        targetOrg: org,
+        plan: currentReassignPlan
+      });
+    }
+
+    function triggerRollback(rollbackFile) {
+      const org = getSelectedTargetOrg();
+      const status = document.getElementById('reassignStatus');
+      status.style.display = 'block';
+      status.innerHTML = '<span style="color: var(--accent-yellow);">🔄 Reverting assignments via rollback manifest...</span>';
+
+      vscode.postMessage({
+        command: 'rollbackUserAssignments',
+        targetOrg: org,
+        rollbackFile: rollbackFile
+      });
+    }
+
     window.addEventListener('message', event => {
       const msg = event.data;
       switch (msg.type) {
         case 'switchTab':
           switchTab(msg.tabId);
           break;
+        case 'assignmentPlanResult': {
+          currentReassignPlan = msg.plan;
+          const status = document.getElementById('reassignStatus');
+          status.style.display = 'block';
+          const isDryRun = document.getElementById('reassignDryRun').checked;
+          const pendingCount = msg.plan.usersToAssign.length;
+          
+          let html = '<div style="margin-bottom: 8px;"><strong>Plan Generated:</strong> ' + msg.plan.totalUsersFound + ' users found on profile (' + msg.plan.activeUsersCount + ' active, ' + msg.plan.alreadyAssignedCount + ' already assigned).</div>';
+          html += '<div style="color: ' + (pendingCount > 0 ? 'var(--accent-yellow)' : 'var(--accent-green)') + '; font-weight: 600;">' + pendingCount + ' pending assignment(s) ready.</div>';
+          
+          if (pendingCount > 0 && !isDryRun) {
+            document.getElementById('btnExecuteReassign').style.display = 'inline-block';
+          } else {
+            document.getElementById('btnExecuteReassign').style.display = 'none';
+          }
+          status.innerHTML = html;
+          break;
+        }
+        case 'assignmentExecuteResult': {
+          const status = document.getElementById('reassignStatus');
+          status.style.display = 'block';
+          document.getElementById('btnExecuteReassign').style.display = 'none';
+          let html = '<div style="color: var(--accent-green); font-weight: 600; margin-bottom: 6px;">🎉 Successfully assigned ' + msg.result.assignedCount + ' user(s)!</div>';
+          if (msg.result.rollbackFile) {
+            html += '<div style="font-size: 0.82rem; opacity: 0.85;">Rollback file: ' + msg.result.rollbackFile + '</div>';
+            html += '<button class="btn btn-secondary" style="margin-top: 8px; font-size: 0.78rem;" onclick="triggerRollback(\\'' + msg.result.rollbackFile.replace(/\\/g, '\\\\') + '\\')">🔄 1-Click Rollback</button>';
+          }
+          status.innerHTML = html;
+          break;
+        }
+        case 'assignmentRollbackResult': {
+          const status = document.getElementById('reassignStatus');
+          status.style.display = 'block';
+          status.innerHTML = '<div style="color: var(--accent-green); font-weight: 600;">✅ Rollback Complete: Removed ' + msg.result.deletedCount + ' assignment(s)!</div>';
+          break;
+        }
+        case 'assignmentError': {
+          const status = document.getElementById('reassignStatus');
+          status.style.display = 'block';
+          status.innerHTML = '<span style="color: var(--accent-rose);">Error: ' + msg.error + '</span>';
+          break;
+        }
         case 'scanResults':
           renderProfiles(msg.profiles);
           break;
